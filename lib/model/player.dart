@@ -1,33 +1,35 @@
 import 'dart:async';
 
 import 'package:adhoc_gaming/adhoc/adhoc_manager.dart';
+import 'package:adhoc_gaming/model/player_info.dart';
 import 'package:flutter/material.dart';
 
 class Player extends ChangeNotifier {
   AdhocManager _manager;
 
-  bool _master = false;
-  String _name;
+  PlayerInfo _info;
 
   Timer _timer;
 
   Player() {
     _manager = new AdhocManager();
-    _master = false;
+    _info = new PlayerInfo(master: false);
   }
 
-  String getName() => _name;
-  void setName(String name) => _name = name;
+  PlayerInfo getPlayerInfo() => _info;
 
-  bool getMaster() => _master;
-  void setMaster(bool master) => _master = master;
+  String getName() => _info.name;
+  void setName(String name) => _info.name = name;
+
+  bool getMaster() => _info.master;
+  void setMaster(bool master) => _info.master = master;
 
   void advertiseRoom(String roomId, String jsonContent) {
     _manager.advertiseRoom(roomId, jsonContent);
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 30), (timer) {
+    _timer = Timer.periodic(Duration(seconds: 10), (timer) {
       _manager.advertiseRoom(roomId, jsonContent);
     });
   }
-  void leaveRoom() => _timer?.cancel();
+  void leaveRoom() { _timer?.cancel(); print("Stop"); }
 }

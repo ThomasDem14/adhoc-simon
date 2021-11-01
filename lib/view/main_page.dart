@@ -10,13 +10,15 @@ class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         centerTitle: true,
         title: const Text('Ad Hoc Main Room'),
       ),
       body: Column(children: [
+        // Player
         Expanded(
-          flex: 2,
+          flex: 3,
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black),
@@ -48,33 +50,52 @@ class MainPage extends StatelessWidget {
             ),
           ),
         ),
+        // Create
         Expanded(
           flex: 1,
           child: Container(
             margin: EdgeInsets.all(10.0),
             child: ElevatedButton(
-              onPressed: (){ 
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(double.infinity, 0),
+              ),
+              onPressed: () {
                 Provider.of<Player>(context, listen: false).setMaster(true);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChangeNotifierProvider(
-                      create: (context) => GameRoom(),
-                      child: RoomPage(),
-                    ),
-                  ));
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChangeNotifierProvider(
+                        create: (context) => GameRoom(),
+                        child: RoomPage(),
+                      ),
+                    ));
               },
               child: const Text("Create Room"),
             ),
           ),
         ),
+        // Join
         Expanded(
-          flex: 3,
+          flex: 6,
           child: Container(
             margin: EdgeInsets.all(10.0),
-            child: ElevatedButton(
-              onPressed: () => {},
-              child: const Text("Join Room"),
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(double.infinity, 0),
+                    ),
+                    onPressed: () => {},
+                    child: const Text("Join Room"),
+                  ),
+                ),
+                Expanded(
+                  flex: 5,
+                  child: Container(),
+                ),
+              ],
             ),
           ),
         ),

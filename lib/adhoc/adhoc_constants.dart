@@ -1,12 +1,12 @@
 enum MessageType {
-  // advertise group
-  advertiseGroup,
+  // send invite to a peer
+  sendInvite,
 
-  // request group access
-  requestGroup,
+  // accept the invite
+  acceptInvite,
 
-  // confirm group access
-  joinGroup,
+  // send a message with the new list of players
+  updatePlayers,
 
   // leave group
   leaveGroup,

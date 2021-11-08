@@ -1,6 +1,6 @@
-import 'package:adhoc_gaming/model/player.dart';
-import 'package:adhoc_gaming/view/main_page.dart';
-import 'package:adhoc_gaming/view/room_page.dart';
+import 'package:adhoc_gaming/adhoc/adhoc_player.dart';
+import 'package:adhoc_gaming/pages/main_page.dart';
+import 'package:adhoc_gaming/pages/room_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => Player(),
+      create: (context) => new AdhocPlayer(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'AdHoc Game',

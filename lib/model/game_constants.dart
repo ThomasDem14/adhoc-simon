@@ -1,4 +1,0 @@
-enum GameType {
-  survival,
-  coop,
-}

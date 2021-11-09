@@ -1,6 +1,6 @@
 import 'package:adhoc_gaming/adhoc/adhoc_player.dart';
 import 'package:adhoc_gaming/pages/main_page.dart';
-import 'package:adhoc_gaming/pages/room_page.dart';
+import 'package:adhoc_gaming/pages/game_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         ),
         routes: {
           '/': (context) => MainPage(),
-          '/room': (context) => RoomPage(),
+          '/game': (context) => GamePage(),
         },
         initialRoute: '/',
       ),

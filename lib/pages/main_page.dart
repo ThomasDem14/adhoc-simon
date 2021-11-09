@@ -7,6 +7,34 @@ class MainPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Show alert dialog to notify the slaves that the game started
+    if (Provider.of<AdhocPlayer>(context).hasGameStarted()) {
+      showDialog<String>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text('The game has been started'),
+          content: const Text('Would you like to join ?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Provider.of<AdhocPlayer>(context).leaveGroup();
+                Navigator.pop(context, 'Leave');
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Provider.of<AdhocPlayer>(context).sendReady();
+                Navigator.pop(context, 'Join');
+                Navigator.of(context).pushReplacementNamed('/game');
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -35,16 +63,19 @@ class MainPage extends StatelessWidget {
             margin: EdgeInsets.all(10.0),
             child: Column(
               children: [
+                // Button
                 Expanded(
                   flex: 1,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 0),
                     ),
-                    onPressed: () {},
+                    onPressed: Provider.of<AdhocPlayer>(context, listen: false)
+                        .startGame,
                     child: const Text("Start game with group"),
                   ),
                 ),
+                // Player list
                 Expanded(
                   flex: 5,
                   child: Consumer<AdhocPlayer>(
@@ -56,9 +87,9 @@ class MainPage extends StatelessWidget {
                         itemBuilder: (BuildContext context, int index) {
                           return Card(
                             child: Row(children: [
-                              Text(peers.elementAt(index)?.name ?? "error"),
+                              Text(peers.elementAt(index)?.name ?? ""),
                               Container(
-                                child: peers.elementAt(index)?.master ?? true
+                                child: peers.elementAt(index).master
                                     ? Icon(Icons.star)
                                     : Container(),
                               ),
@@ -80,6 +111,7 @@ class MainPage extends StatelessWidget {
             margin: EdgeInsets.all(10.0),
             child: Column(
               children: [
+                // Button
                 Expanded(
                   flex: 1,
                   child: ElevatedButton(
@@ -91,6 +123,7 @@ class MainPage extends StatelessWidget {
                     child: const Text("Search for available players"),
                   ),
                 ),
+                // Device list
                 Expanded(
                   flex: 5,
                   child: Consumer<AdhocPlayer>(

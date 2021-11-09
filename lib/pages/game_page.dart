@@ -1,9 +1,8 @@
 import 'package:adhoc_gaming/adhoc/adhoc_player.dart';
-import 'package:adhoc_gaming/pages/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class RoomPage extends StatelessWidget {
+class GamePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -45,9 +44,7 @@ class RoomPage extends StatelessWidget {
   }
 
   Future<void> onReturn(BuildContext context) {
-    //Provider.of<AdhocPlayer>(context, listen: false).leaveRoom();
-    return Navigator.of(context).pushReplacement(MaterialPageRoute(
-      builder: (context) => MainPage(),
-    ));
+    Provider.of<AdhocPlayer>(context, listen: false).leaveGroup();
+    return Navigator.of(context).pushReplacementNamed('/');
   }
 }

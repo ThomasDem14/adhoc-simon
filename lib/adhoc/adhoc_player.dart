@@ -14,6 +14,8 @@ class AdhocPlayer extends ChangeNotifier {
   PlayerInfo _info;
   List<PlayerInfo> _groupPlayers = List.empty(growable: true);
 
+  bool _startGame = false;
+
   AdhocPlayer() {
     _manager.enableBle(3600);
     _manager.eventStream.listen(_processAdHocEvent);
@@ -21,6 +23,8 @@ class AdhocPlayer extends ChangeNotifier {
 
     _info = new PlayerInfo(master: false);
   }
+
+  // Actions in the main page
 
   void startDiscovery() => _manager.discovery();
 
@@ -44,6 +48,38 @@ class AdhocPlayer extends ChangeNotifier {
     message.putIfAbsent('players', () => jsonEncode(_groupPlayers));
     _manager.sendMessageTo(message, peer.label);
   }
+
+  void startGame() {
+    if (!_info.master)
+      return;
+
+    _startGame = true;
+    notifyListeners();
+
+    // Only the master can start the game
+    var message = HashMap<String, dynamic>();
+    message.putIfAbsent('type', () => MessageType.startGame);
+    message.putIfAbsent('players', () => jsonEncode(_groupPlayers));
+    _manager.broadcast(message);
+  }
+
+  void leaveGroup() {
+    _groupPlayers = List.empty(growable: true);
+    notifyListeners();
+
+    var message = HashMap<String, dynamic>();
+    message.putIfAbsent('type', () => MessageType.leaveGroup);
+    message.putIfAbsent('player', () => this._info.toJson().toString());
+    _manager.broadcast(message);
+  }
+
+  void sendReady() {
+
+  }
+
+  // Actions in the game page
+
+  // Process messages
 
   void _processAdHocEvent(Event event) {
     switch (event.type) {
@@ -111,13 +147,21 @@ class AdhocPlayer extends ChangeNotifier {
         message.putIfAbsent('players', () => jsonEncode(_groupPlayers));
         _manager.broadcastExcept(message, event.device);
         break;
-        
+
       case MessageType.updatePlayers:
         _groupPlayers = jsonDecode(data['players']);
         notifyListeners();
         break;
-    
+
+      case MessageType.startGame:
+        _startGame = true;
+        notifyListeners();
+        break;
+
       case MessageType.leaveGroup:
+        var player = jsonDecode(data['player']);
+        _groupPlayers.removeWhere((element) => element.uuid == player.uuid);
+        notifyListeners();
         break;
     }
   }
@@ -130,6 +174,7 @@ class AdhocPlayer extends ChangeNotifier {
   void setName(String name) => _info.name = name;
 
   bool getMaster() => _info.master;
+  bool hasGameStarted() => _startGame;
 
   List<AdHocDevice> getDiscoveredDevices() => _discovered;
   List<PlayerInfo> getPlayers() => _groupPlayers;

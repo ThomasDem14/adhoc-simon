@@ -1,36 +1,51 @@
 import 'package:adhoc_gaming/adhoc/adhoc_player.dart';
+import 'package:adhoc_gaming/game/simon_game.dart';
+import 'package:adhoc_gaming/pages/game_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class MainPage extends StatelessWidget {
   final textController = TextEditingController();
 
+  Widget gameDialog(BuildContext context) {
+    return AlertDialog(
+      title: const Text('The game has been started'),
+      content: const Text('Would you like to join ?'),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Provider.of<AdhocPlayer>(context).leaveGroup();
+            Navigator.pop(context, 'Leave');
+            Navigator.of(context).pushReplacementNamed('/');
+          },
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            Provider.of<AdhocPlayer>(context).sendReady();
+            Navigator.pop(context, 'Join');
+          },
+          child: const Text('OK'),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Show alert dialog to notify the slaves that the game started
     if (Provider.of<AdhocPlayer>(context).hasGameStarted()) {
-      showDialog<String>(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          title: const Text('The game has been started'),
-          content: const Text('Would you like to join ?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Provider.of<AdhocPlayer>(context).leaveGroup();
-                Navigator.pop(context, 'Leave');
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Provider.of<AdhocPlayer>(context).sendReady();
-                Navigator.pop(context, 'Join');
-                Navigator.of(context).pushReplacementNamed('/game');
-              },
-              child: const Text('OK'),
-            ),
-          ],
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (context) => ChangeNotifierProvider(
+          create: (context) => SimonGame(),
+          child: GamePage(),
+        ),
+      ));
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          barrierDismissible: true,
+          opaque: false,
+          pageBuilder: (context, _, __) => gameDialog(context),
         ),
       );
     }

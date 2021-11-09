@@ -92,7 +92,8 @@ class AdhocPlayer extends ChangeNotifier {
       case AdHocType.onDiscoveryCompleted:
         print("onDiscoveryCompleted");
         for (final discovered in (event.data as Map).values) {
-          _discovered.add(discovered as AdHocDevice);
+          if (!_discovered.any((element) => element.mac == (discovered as AdHocDevice).mac))
+            _discovered.add(discovered as AdHocDevice);
         }
         notifyListeners();
         break;

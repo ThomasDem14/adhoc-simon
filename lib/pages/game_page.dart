@@ -25,17 +25,27 @@ class GamePage extends StatelessWidget {
           // Players and leds
           Expanded(
             flex: 4,
-            child: ListView.builder(
-              padding: EdgeInsets.all(15.0),
-              itemCount: 4,
-              itemBuilder: (BuildContext context, int index) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text("Player $index"),
-                    gameWidgets.ledButton(Colors.white),
-                    gameWidgets.ledButton(Colors.white),
-                  ],
+            child: Consumer<AdhocPlayer>(
+              builder: (context, player, child) {
+                var players = player.getPlayers();
+                return ListView.separated(
+                  padding: EdgeInsets.all(15.0),
+                  itemCount: players.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(players.elementAt(index).name),
+                        gameWidgets.ledButton(GameColors.Default),
+                        gameWidgets.ledButton(GameColors.Default),
+                      ],
+                    );
+                  },
+                  separatorBuilder: (BuildContext context, int index) {
+                    return SizedBox(
+                      height: 10,
+                    );
+                  },
                 );
               },
             ),
@@ -73,21 +83,21 @@ class GamePage extends StatelessWidget {
                       Row(children: [
                         ElevatedButton(
                           onPressed: () {},
-                          child: gameWidgets.ledButton(RED_COLOR),
+                          child: gameWidgets.ledButton(GameColors.Red),
                         ),
                         ElevatedButton(
                           onPressed: () {},
-                          child: gameWidgets.ledButton(YELLOW_COLOR),
+                          child: gameWidgets.ledButton(GameColors.Yellow),
                         ),
                       ]),
                       Row(children: [
                         ElevatedButton(
                           onPressed: () {},
-                          child: gameWidgets.ledButton(BLUE_COLOR),
+                          child: gameWidgets.ledButton(GameColors.Blue),
                         ),
                         ElevatedButton(
                           onPressed: () {},
-                          child: gameWidgets.ledButton(GREEN_COLOR),
+                          child: gameWidgets.ledButton(GameColors.Green),
                         ),
                       ]),
                     ]),
@@ -102,7 +112,7 @@ class GamePage extends StatelessWidget {
     );
   }
 
-  Future<void> onReturn(BuildContext context) {
+  Future<void> onReturn(BuildContext context) async {
     Provider.of<AdhocPlayer>(context, listen: false).leaveGroup();
     return Navigator.of(context).pushReplacementNamed('/');
   }

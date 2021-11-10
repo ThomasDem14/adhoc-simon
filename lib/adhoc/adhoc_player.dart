@@ -50,6 +50,17 @@ class AdhocPlayer extends ChangeNotifier {
   }
 
   void startGame() {
+    // DEBUG
+    if (true) {
+      _info.master = true;
+      _groupPlayers.add(_info);
+
+      _groupPlayers.add(new PlayerInfo(name: "Player 2", master: false));
+      _groupPlayers.add(new PlayerInfo(name: "Player 3", master: false));
+      _groupPlayers.add(new PlayerInfo(name: "Player 4", master: false));
+    }
+    // END
+
     if (!_info.master)
       return;
 
@@ -64,6 +75,7 @@ class AdhocPlayer extends ChangeNotifier {
   }
 
   void leaveGroup() {
+    _startGame = false;
     _groupPlayers = List.empty(growable: true);
     notifyListeners();
 
@@ -179,4 +191,6 @@ class AdhocPlayer extends ChangeNotifier {
 
   List<AdHocDevice> getDiscoveredDevices() => _discovered;
   List<PlayerInfo> getPlayers() => _groupPlayers;
+
+  int getNbPlayers() => _groupPlayers.length;
 }

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class SimonGame extends ChangeNotifier {
   static final Random random = new Random();
 
-  int _level = 1;
+  int _level = 0;
   int _nbPlayers;
 
   // The sequence consists of a sequence of colors per player
@@ -24,13 +24,19 @@ class SimonGame extends ChangeNotifier {
     return GameColors.values[random.nextInt(GameColors.values.length)];
   }
 
-  void incrementLevel() {
+  void startLevel() {
+    // if duration is active => return
+
     // Add 1 new color for each player
     for (var i = 1; i < _nbPlayers; i++)
       _sequence.elementAt(i).add(_randomColor());
-
+    // Increment level
     _level++;
+
     notifyListeners();
+
+    // Start playing sequence
+    // Duration/timer 
   }
 
   int getLevel() => _level;

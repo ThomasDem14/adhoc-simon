@@ -13,7 +13,7 @@ class MainPage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (Provider.of<AdhocPlayer>(context).hasGameStarted()) {
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
+        Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => ChangeNotifierProvider(
             create: (context) => SimonGame(
                 Provider.of<AdhocPlayer>(context, listen: false)
@@ -71,19 +71,14 @@ class MainPage extends StatelessWidget {
                   flex: 5,
                   child: Consumer<AdhocPlayer>(
                     builder: (context, player, child) {
-                      var peers = player.getPlayers();
+                      var peers = player.getPeeredDevices();
                       return ListView.builder(
                         padding: EdgeInsets.all(5.0),
                         itemCount: peers.length,
                         itemBuilder: (BuildContext context, int index) {
                           return Card(
                             child: Row(children: [
-                              Text(peers.elementAt(index)?.name ?? ""),
-                              Container(
-                                child: peers.elementAt(index).master
-                                    ? Icon(Icons.star)
-                                    : Container(),
-                              ),
+                              Text(peers.elementAt(index).name),
                             ]),
                           );
                         },

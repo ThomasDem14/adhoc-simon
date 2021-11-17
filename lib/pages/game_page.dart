@@ -50,7 +50,16 @@ class GamePage extends StatelessWidget {
               },
             ),
           ),
-          // Buttons
+          Expanded(
+            flex: 1,
+            child: Center(
+              child: ElevatedButton(
+                child: const Text("START"),
+                onPressed: Provider.of<SimonGame>(context, listen: false).startLevel,
+              ),
+            ),
+          ),
+          // Level + Buttons color
           Expanded(
             flex: 1,
             child: Row(
@@ -114,6 +123,6 @@ class GamePage extends StatelessWidget {
 
   Future<void> onReturn(BuildContext context) async {
     Provider.of<AdhocPlayer>(context, listen: false).leaveGroup();
-    return Navigator.of(context).pushReplacementNamed('/');
+    return Navigator.of(context).pop();
   }
 }

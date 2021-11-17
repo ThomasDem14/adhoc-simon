@@ -18,10 +18,7 @@ class TransitionDialog extends StatelessWidget {
           child: const Text('Cancel'),
         ),
         TextButton(
-          onPressed: () {
-            Provider.of<AdhocPlayer>(context, listen: false).sendReady();
-            Navigator.pop(context, 'Join');
-          },
+          onPressed: () => Navigator.pop(context, 'Join'),
           child: const Text('OK'),
         ),
       ],

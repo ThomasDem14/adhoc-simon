@@ -11,8 +11,8 @@ class AdhocPlayer extends ChangeNotifier {
   List<AdHocDevice> _discovered = List.empty(growable: true);
   List<AdHocDevice> _peers = List.empty(growable: true);
 
-  PlayerInfo _info;
-  List<PlayerInfo> _groupPlayers = List.empty(growable: true);
+  String _name;
+  var _deviceDictionary = HashMap<String, String>();
 
   bool _startGame = false;
 
@@ -20,8 +20,6 @@ class AdhocPlayer extends ChangeNotifier {
     _manager.enableBle(3600);
     _manager.eventStream.listen(_processAdHocEvent);
     _manager.open = true;
-
-    _info = new PlayerInfo(master: false);
   }
 
   // Actions in the main page
@@ -30,63 +28,38 @@ class AdhocPlayer extends ChangeNotifier {
 
   void connectPeer(AdHocDevice peer) async {
     // Establish connection to the peer
-    await _manager.connect(peer);
-    _discovered.removeWhere((element) => (element.mac == peer.mac));
-    _peers.add(peer);
-
-    // If alone in the group, become the master
-    if (_groupPlayers.isEmpty) {
-      this._info.master = true;
-      _groupPlayers.add(this._info);
+    try {
+      await _manager.connect(peer);
+      _discovered.removeWhere((element) => element.label == peer.label);
+      _peers.add(peer);
+    } catch (e) {
+      print(e.toString());
     }
 
     notifyListeners();
-
-    // Send invite to peer
-    var message = HashMap<String, dynamic>();
-    message.putIfAbsent('type', () => MessageType.sendInvite);
-    message.putIfAbsent('players', () => jsonEncode(_groupPlayers));
-    _manager.sendMessageTo(message, peer.label);
   }
 
   void startGame() {
-    // DEBUG
-    if (true) {
-      _info.master = true;
-      _groupPlayers.add(_info);
-
-      _groupPlayers.add(new PlayerInfo(name: "Player 2", master: false));
-      _groupPlayers.add(new PlayerInfo(name: "Player 3", master: false));
-      _groupPlayers.add(new PlayerInfo(name: "Player 4", master: false));
-    }
-    // END
-
-    if (!_info.master)
-      return;
-
     _startGame = true;
     notifyListeners();
 
     // Only the master can start the game
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.startGame);
-    message.putIfAbsent('players', () => jsonEncode(_groupPlayers));
     _manager.broadcast(message);
   }
 
   void leaveGroup() {
     _startGame = false;
-    _groupPlayers = List.empty(growable: true);
-    notifyListeners();
-
+    
+    // Send leave message
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.leaveGroup);
-    message.putIfAbsent('player', () => this._info.toJson().toString());
     _manager.broadcast(message);
-  }
 
-  void sendReady() {
-
+    // Then disconnect
+    _manager.disconnectAll();
+    notifyListeners();
   }
 
   // Actions in the game page
@@ -104,7 +77,8 @@ class AdhocPlayer extends ChangeNotifier {
       case AdHocType.onDiscoveryCompleted:
         print("onDiscoveryCompleted");
         for (final discovered in (event.data as Map).values) {
-          if (!_discovered.any((element) => element.mac == (discovered as AdHocDevice).mac))
+          if (!_discovered
+              .any((element) => element.label == (discovered as AdHocDevice).label))
             _discovered.add(discovered as AdHocDevice);
         }
         notifyListeners();
@@ -120,6 +94,7 @@ class AdhocPlayer extends ChangeNotifier {
       case AdHocType.onConnection:
         print("onConnection");
         _peers.add(event.device);
+        notifyListeners();
         break;
       case AdHocType.onConnectionClosed:
         print("onConnectionClosed");
@@ -137,43 +112,20 @@ class AdhocPlayer extends ChangeNotifier {
   void _processDataReceived(Event event) {
     var data = event.data as Map;
     switch (data['type'] as MessageType) {
-      case MessageType.sendInvite:
-        // Get players in the group and add yourself in
-        _groupPlayers = jsonDecode(data['players']);
-        this._info.master = false;
-        _groupPlayers.add(this._info);
-        notifyListeners();
-        // Send accept invite
-        var message = HashMap<String, dynamic>();
-        message.putIfAbsent('type', () => MessageType.acceptInvite);
-        message.putIfAbsent('info', () => _info.toJson().toString());
-        _manager.sendMessageTo(message, event.device.label);
-        break;
-
-      case MessageType.acceptInvite:
-        // Add new player to the group
-        _groupPlayers.add(data['info']);
-        notifyListeners();
-        // Send info to everyone
-        var message = HashMap<String, dynamic>();
-        message.putIfAbsent('type', () => MessageType.updatePlayers);
-        message.putIfAbsent('players', () => jsonEncode(_groupPlayers));
-        _manager.broadcastExcept(message, event.device);
-        break;
-
-      case MessageType.updatePlayers:
-        _groupPlayers = jsonDecode(data['players']);
-        notifyListeners();
-        break;
-
       case MessageType.startGame:
         _startGame = true;
         notifyListeners();
         break;
 
       case MessageType.leaveGroup:
-        var player = jsonDecode(data['player']);
-        _groupPlayers.removeWhere((element) => element.uuid == player.uuid);
+        _manager.disconnect(event.device);
+        _peers.removeWhere((device) => device.label == event.device.label);
+        notifyListeners();
+        break;
+
+      case MessageType.changeName:
+        var name = jsonDecode(data['name']) as String;
+        _deviceDictionary.putIfAbsent(event.device.label, () => name);
         notifyListeners();
         break;
     }
@@ -181,16 +133,24 @@ class AdhocPlayer extends ChangeNotifier {
 
   /* Getters & setters */
 
-  PlayerInfo getPlayerInfo() => _info;
+  // TO REMOVE
+  List<PlayerInfo> getPlayers() => null;
 
-  String getName() => _info.name ?? "";
-  void setName(String name) => _info.name = name;
+  String getName() => _name ?? "";
+  void setName(String name) {
+    _name = name;
 
-  bool getMaster() => _info.master;
+    // Send invite to peer
+    var message = HashMap<String, dynamic>();
+    message.putIfAbsent('type', () => MessageType.changeName);
+    message.putIfAbsent('name', () => name);
+    _manager.broadcast(message);
+  }
+
   bool hasGameStarted() => _startGame;
 
   List<AdHocDevice> getDiscoveredDevices() => _discovered;
-  List<PlayerInfo> getPlayers() => _groupPlayers;
+  List<AdHocDevice> getPeeredDevices() => _peers;
 
-  int getNbPlayers() => _groupPlayers.length;
+  int getNbPlayers() => _peers.length;
 }

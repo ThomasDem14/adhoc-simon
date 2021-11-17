@@ -2,7 +2,6 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:adhoc_gaming/adhoc/adhoc_constants.dart';
-import 'package:adhoc_gaming/adhoc/player_info.dart';
 import 'package:adhoc_plugin/adhoc_plugin.dart';
 import 'package:flutter/material.dart';
 
@@ -132,9 +131,6 @@ class AdhocPlayer extends ChangeNotifier {
   }
 
   /* Getters & setters */
-
-  // TO REMOVE
-  List<PlayerInfo> getPlayers() => null;
 
   String getName() => _name ?? "";
   void setName(String name) {

@@ -27,15 +27,14 @@ class GamePage extends StatelessWidget {
             flex: 4,
             child: Consumer<AdhocPlayer>(
               builder: (context, player, child) {
-                var players = player.getPlayers();
                 return ListView.separated(
                   padding: EdgeInsets.all(15.0),
-                  itemCount: players.length,
+                  itemCount: player.getNbPlayers(),
                   itemBuilder: (BuildContext context, int index) {
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Text(players.elementAt(index).name),
+                        //Text(players.elementAt(index).name),
                         gameWidgets.ledButton(GameColors.Default),
                         gameWidgets.ledButton(GameColors.Default),
                       ],

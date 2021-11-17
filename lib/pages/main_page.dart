@@ -47,49 +47,6 @@ class MainPage extends StatelessWidget {
             ),
           ),
         ),
-        // Players in your group
-        Expanded(
-          flex: 4,
-          child: Container(
-            margin: EdgeInsets.all(10.0),
-            child: Column(
-              children: [
-                // Button
-                Expanded(
-                  flex: 1,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: Size(double.infinity, 0),
-                    ),
-                    onPressed: Provider.of<AdhocPlayer>(context, listen: false)
-                        .startGame,
-                    child: const Text("Start game with group"),
-                  ),
-                ),
-                // Player list
-                Expanded(
-                  flex: 5,
-                  child: Consumer<AdhocPlayer>(
-                    builder: (context, player, child) {
-                      var peers = player.getPeeredDevices();
-                      return ListView.builder(
-                        padding: EdgeInsets.all(5.0),
-                        itemCount: peers.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return Card(
-                            child: Row(children: [
-                              Text(peers.elementAt(index).name),
-                            ]),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
         // Available players
         Expanded(
           flex: 4,
@@ -140,6 +97,50 @@ class MainPage extends StatelessWidget {
             ),
           ),
         ),
+        // Players in your group
+        Expanded(
+          flex: 4,
+          child: Container(
+            margin: EdgeInsets.all(10.0),
+            child: Column(
+              children: [
+                // Button
+                Expanded(
+                  flex: 1,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(double.infinity, 0),
+                    ),
+                    onPressed: Provider.of<AdhocPlayer>(context, listen: false)
+                        .startGame,
+                    child: const Text("Start game with group"),
+                  ),
+                ),
+                // Player list
+                Expanded(
+                  flex: 5,
+                  child: Consumer<AdhocPlayer>(
+                    builder: (context, player, child) {
+                      var peers = player.getPeeredDevices();
+                      return ListView.builder(
+                        padding: EdgeInsets.all(5.0),
+                        itemCount: peers.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Card(
+                            child: Row(children: [
+                              Text(peers.elementAt(index).name),
+                              Text(player.getPlayerName(peers.elementAt(index).label)),
+                            ]),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ), 
       ]),
     );
   }

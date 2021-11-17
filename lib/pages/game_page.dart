@@ -36,7 +36,9 @@ class GamePage extends StatelessWidget {
                       children: [
                         //Text(players.elementAt(index).name),
                         gameWidgets.ledButton(GameColors.Default),
-                        gameWidgets.ledButton(GameColors.Default),
+                        gameWidgets.ledButton(Provider.of<SimonGame>(context)
+                            .getColorSequence()
+                            .elementAt(index)),
                       ],
                     );
                   },
@@ -54,7 +56,8 @@ class GamePage extends StatelessWidget {
             child: Center(
               child: ElevatedButton(
                 child: const Text("START"),
-                onPressed: Provider.of<SimonGame>(context, listen: false).startLevel,
+                onPressed:
+                    Provider.of<SimonGame>(context, listen: false).startLevel,
               ),
             ),
           ),

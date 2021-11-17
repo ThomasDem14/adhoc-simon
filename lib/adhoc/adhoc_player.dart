@@ -15,6 +15,8 @@ class AdhocPlayer extends ChangeNotifier {
 
   bool _startGame = false;
 
+  static const bool _DEBUG = true;
+
   AdhocPlayer() {
     _manager.enableBle(3600);
     _manager.eventStream.listen(_processAdHocEvent);
@@ -32,7 +34,7 @@ class AdhocPlayer extends ChangeNotifier {
       _discovered.removeWhere((element) => element.label == peer.label);
       _peers.add(peer);
     } catch (e) {
-      print(e.toString());
+      print(">>>>> Error: $e");
     }
 
     notifyListeners();
@@ -68,13 +70,13 @@ class AdhocPlayer extends ChangeNotifier {
   void _processAdHocEvent(Event event) {
     switch (event.type) {
       case AdHocType.onDeviceDiscovered:
-        print("onDeviceDiscovered");
+        print("----- onDeviceDiscovered");
         break;
       case AdHocType.onDiscoveryStarted:
-        print("onDiscoveryStarted");
+        print("----- onDiscoveryStarted");
         break;
       case AdHocType.onDiscoveryCompleted:
-        print("onDiscoveryCompleted");
+        print("----- onDiscoveryCompleted");
         for (final discovered in (event.data as Map).values) {
           if (!_discovered
               .any((element) => element.label == (discovered as AdHocDevice).label))
@@ -83,20 +85,22 @@ class AdhocPlayer extends ChangeNotifier {
         notifyListeners();
         break;
       case AdHocType.onDataReceived:
-        print("onDataReceived");
+        print("----- onDataReceived");
         _processDataReceived(event);
         break;
       case AdHocType.onForwardData:
-        print("onForwardData");
+        print("----- onForwardData");
         _processDataReceived(event);
         break;
       case AdHocType.onConnection:
-        print("onConnection");
+        print("----- onConnection with device ${event.device.label}");
         _peers.add(event.device);
         notifyListeners();
         break;
       case AdHocType.onConnectionClosed:
-        print("onConnectionClosed");
+        print("----- onConnectionClosed with device ${event.device.label}");
+        _peers.removeWhere((element) => element.label == event.device.label);
+        notifyListeners();
         break;
       case AdHocType.onInternalException:
         break;
@@ -132,11 +136,12 @@ class AdhocPlayer extends ChangeNotifier {
 
   /* Getters & setters */
 
+  String getPlayerName(String label) => _deviceDictionary[label] ?? "";
   String getName() => _name ?? "";
   void setName(String name) {
     _name = name;
 
-    // Send invite to peer
+    // Send notification to peer
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.changeName);
     message.putIfAbsent('name', () => name);
@@ -148,5 +153,5 @@ class AdhocPlayer extends ChangeNotifier {
   List<AdHocDevice> getDiscoveredDevices() => _discovered;
   List<AdHocDevice> getPeeredDevices() => _peers;
 
-  int getNbPlayers() => _peers.length;
+  int getNbPlayers() => _DEBUG ? 4 : _peers.length;
 }

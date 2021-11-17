@@ -46,7 +46,7 @@ class AdhocPlayer extends ChangeNotifier {
 
     // Only the master can start the game
     var message = HashMap<String, dynamic>();
-    message.putIfAbsent('type', () => MessageType.startGame);
+    message.putIfAbsent('type', () => MessageType.startGame.name);
     _manager.broadcast(message);
   }
 
@@ -55,7 +55,7 @@ class AdhocPlayer extends ChangeNotifier {
     
     // Send leave message
     var message = HashMap<String, dynamic>();
-    message.putIfAbsent('type', () => MessageType.leaveGroup);
+    message.putIfAbsent('type', () => MessageType.leaveGroup.name);
     _manager.broadcast(message);
 
     // Then disconnect
@@ -95,6 +95,7 @@ class AdhocPlayer extends ChangeNotifier {
       case AdHocType.onConnection:
         print("----- onConnection with device ${event.device.label}");
         _peers.add(event.device);
+        _discovered.removeWhere((element) => element.label == event.device.label);
         notifyListeners();
         break;
       case AdHocType.onConnectionClosed:
@@ -114,7 +115,7 @@ class AdhocPlayer extends ChangeNotifier {
 
   void _processDataReceived(Event event) {
     var data = event.data as Map;
-    switch (data['type'] as MessageType) {
+    switch (getMessageTypeFromString(data['type'] as String)) {
       case MessageType.startGame:
         _startGame = true;
         notifyListeners();
@@ -143,7 +144,7 @@ class AdhocPlayer extends ChangeNotifier {
 
     // Send notification to peer
     var message = HashMap<String, dynamic>();
-    message.putIfAbsent('type', () => MessageType.changeName);
+    message.putIfAbsent('type', () => MessageType.changeName.name);
     message.putIfAbsent('name', () => name);
     _manager.broadcast(message);
   }

@@ -8,3 +8,11 @@ enum MessageType {
   // send info that name changed
   changeName,
 }
+
+MessageType getMessageTypeFromString(String typeString) {
+  for (MessageType type in MessageType.values) {
+    if (type.toString() == typeString)
+      return type;
+  }
+  return null;
+}

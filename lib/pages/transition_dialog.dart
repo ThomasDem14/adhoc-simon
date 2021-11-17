@@ -13,7 +13,7 @@ class TransitionDialog extends StatelessWidget {
           onPressed: () {
             Provider.of<AdhocPlayer>(context, listen: false).leaveGroup();
             Navigator.pop(context, 'Leave');
-            Navigator.of(context).pushReplacementNamed('/');
+            Navigator.of(context).pop();
           },
           child: const Text('Cancel'),
         ),

@@ -51,7 +51,10 @@ class MainPage extends StatelessWidget {
         Expanded(
           flex: 4,
           child: Container(
-            margin: EdgeInsets.all(10.0),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.black)),
+            ),
+            padding: EdgeInsets.all(10.0),
             child: Column(
               children: [
                 // Button
@@ -60,6 +63,8 @@ class MainPage extends StatelessWidget {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 0),
+                      textStyle: TextStyle(color: Colors.white),
+                      primary: Colors.blue,
                     ),
                     onPressed: Provider.of<AdhocPlayer>(context, listen: false)
                         .startDiscovery,
@@ -82,10 +87,19 @@ class MainPage extends StatelessWidget {
                               ? device.mac.wifi
                               : device.mac.ble;
                           return Card(
-                            child: ListTile(
-                              title: Center(child: Text(device.name)),
-                              subtitle: Center(child: Text('$type: $mac')),
-                              onTap: () async => player.connectPeer(device),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                ListTile(
+                                  leading: Icon(Icons.device_unknown),
+                                  title: Center(child: Text(device.name)),
+                                  subtitle: Center(child: Text('$type: $mac')),
+                                ),
+                                TextButton(
+                                  child: const Text('Connect'), 
+                                  onPressed: () async => player.connectPeer(device),
+                                ),
+                              ],
                             ),
                           );
                         },
@@ -101,7 +115,10 @@ class MainPage extends StatelessWidget {
         Expanded(
           flex: 4,
           child: Container(
-            margin: EdgeInsets.all(10.0),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.black)),
+            ),
+            padding: EdgeInsets.all(10.0),
             child: Column(
               children: [
                 // Button
@@ -110,6 +127,8 @@ class MainPage extends StatelessWidget {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 0),
+                      textStyle: TextStyle(color: Colors.white),
+                      primary: Colors.blue,
                     ),
                     onPressed: Provider.of<AdhocPlayer>(context, listen: false)
                         .startGame,
@@ -127,10 +146,16 @@ class MainPage extends StatelessWidget {
                         itemCount: peers.length,
                         itemBuilder: (BuildContext context, int index) {
                           return Card(
-                            child: Row(children: [
-                              Text(peers.elementAt(index).name),
-                              Text(player.getPlayerName(peers.elementAt(index).label)),
-                            ]),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                ListTile(
+                                  leading: Icon(Icons.person),
+                                  title: Center(child: Text(peers.elementAt(index).name)),
+                                  subtitle: Center(child: Text(player.getPlayerName(peers.elementAt(index).label))),
+                                ),
+                              ],
+                            ),
                           );
                         },
                       );
@@ -140,7 +165,7 @@ class MainPage extends StatelessWidget {
               ],
             ),
           ),
-        ), 
+        ),
       ]),
     );
   }

@@ -11,7 +11,7 @@ class AdhocPlayer extends ChangeNotifier {
   List<AdHocDevice> _peers = List.empty(growable: true);
 
   String _name;
-  var _deviceDictionary = HashMap<String, String>();
+  var _deviceDictionary = Map<String, String>();
 
   bool _startGame = false;
 
@@ -29,13 +29,9 @@ class AdhocPlayer extends ChangeNotifier {
 
   void connectPeer(AdHocDevice peer) async {
     // Establish connection to the peer
-    try {
-      await _manager.connect(peer);
-      _discovered.removeWhere((element) => element.label == peer.label);
-      _peers.add(peer);
-    } catch (e) {
-      print(">>>>> Error: $e");
-    }
+    await _manager.connect(peer);
+    _discovered.removeWhere((element) => element.label == peer.label);
+    _peers.add(peer);
 
     notifyListeners();
   }
@@ -44,18 +40,19 @@ class AdhocPlayer extends ChangeNotifier {
     _startGame = true;
     notifyListeners();
 
-    // Only the master can start the game
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.startGame.name);
+    message.putIfAbsent('peers', () => _peers);
     _manager.broadcast(message);
   }
 
   void leaveGroup() {
     _startGame = false;
-    
+
     // Send leave message
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.leaveGroup.name);
+    message.putIfAbsent('peers', () => _peers);
     _manager.broadcast(message);
 
     // Then disconnect
@@ -78,8 +75,8 @@ class AdhocPlayer extends ChangeNotifier {
       case AdHocType.onDiscoveryCompleted:
         print("----- onDiscoveryCompleted");
         for (final discovered in (event.data as Map).values) {
-          if (!_discovered
-              .any((element) => element.label == (discovered as AdHocDevice).label))
+          if (!_discovered.any(
+              (element) => element.label == (discovered as AdHocDevice).label))
             _discovered.add(discovered as AdHocDevice);
         }
         notifyListeners();
@@ -95,7 +92,8 @@ class AdhocPlayer extends ChangeNotifier {
       case AdHocType.onConnection:
         print("----- onConnection with device ${event.device.label}");
         _peers.add(event.device);
-        _discovered.removeWhere((element) => element.label == event.device.label);
+        _discovered
+            .removeWhere((element) => element.label == event.device.label);
         notifyListeners();
         break;
       case AdHocType.onConnectionClosed:
@@ -104,10 +102,13 @@ class AdhocPlayer extends ChangeNotifier {
         notifyListeners();
         break;
       case AdHocType.onInternalException:
+        print("----- onInternalException");
         break;
       case AdHocType.onGroupInfo:
+        print("----- onGroupInfo");
         break;
       case AdHocType.onGroupDataReceived:
+        print("----- onGroupDataReceived");
         break;
       default:
     }
@@ -129,7 +130,9 @@ class AdhocPlayer extends ChangeNotifier {
 
       case MessageType.changeName:
         var name = jsonDecode(data['name']) as String;
-        _deviceDictionary.putIfAbsent(event.device.label, () => name);
+        _deviceDictionary.update(event.device.label, (value) => name,
+            ifAbsent: () =>
+                _deviceDictionary.putIfAbsent(event.device.label, () => name));
         notifyListeners();
         break;
     }
@@ -137,14 +140,19 @@ class AdhocPlayer extends ChangeNotifier {
 
   /* Getters & setters */
 
-  String getPlayerName(String label) => _deviceDictionary[label] ?? "";
+  String getPlayerName(String label) =>
+      _deviceDictionary[label] ?? "Player $label";
   String getName() => _name ?? "";
   void setName(String name) {
     _name = name;
+    _deviceDictionary.update(_manager.ownAddress, (value) => name,
+        ifAbsent: () =>
+            _deviceDictionary.putIfAbsent(_manager.ownAddress, () => name));
 
     // Send notification to peer
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.changeName.name);
+    message.putIfAbsent('peers', () => _peers);
     message.putIfAbsent('name', () => name);
     _manager.broadcast(message);
   }

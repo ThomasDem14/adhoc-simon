@@ -10,9 +10,12 @@ enum MessageType {
 }
 
 MessageType getMessageTypeFromString(String typeString) {
-  for (MessageType type in MessageType.values) {
-    if (type.toString() == typeString)
-      return type;
-  }
-  return null;
+  if (typeString == "startGame")
+    return MessageType.startGame;
+  else if (typeString == "leaveGroup")
+    return MessageType.leaveGroup;
+  else if (typeString == "changeName")
+    return MessageType.changeName;
+  else
+    return null;
 }

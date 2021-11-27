@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:convert';
 
 import 'package:adhoc_gaming/adhoc/adhoc_constants.dart';
 import 'package:adhoc_plugin/adhoc_plugin.dart';
@@ -115,8 +114,11 @@ class AdhocPlayer extends ChangeNotifier {
   }
 
   void _processDataReceived(Event event) {
+    print(event);
     var data = event.data as Map;
-    switch (getMessageTypeFromString(data['type'] as String)) {
+
+    MessageType type = getMessageTypeFromString(data['type'] as String);
+    switch (type) {
       case MessageType.startGame:
         _startGame = true;
         notifyListeners();
@@ -129,7 +131,7 @@ class AdhocPlayer extends ChangeNotifier {
         break;
 
       case MessageType.changeName:
-        var name = jsonDecode(data['name']) as String;
+        var name = data['name'] as String;
         _deviceDictionary.update(event.device.label, (value) => name,
             ifAbsent: () =>
                 _deviceDictionary.putIfAbsent(event.device.label, () => name));

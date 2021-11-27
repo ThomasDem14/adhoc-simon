@@ -17,7 +17,7 @@ dependencies:
   uuid: ^3.0.5
 
   adhoc_plugin:
-    path: /Users/demoulinthomas/Desktop/TFE/TFE_2020/adhoc_plugin-master
+    path: /Users/demoulinthomas/Desktop/TFE/TFE_2021/adhoc_plugin
 
   cupertino_icons: ^1.0.2
 

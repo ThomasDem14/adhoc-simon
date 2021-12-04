@@ -13,7 +13,7 @@ class BleManager extends ChangeNotifier {
 
   void discovery() {
     flutterReactiveBle.scanForDevices(
-        withServices: [], scanMode: ScanMode.balanced).listen((event) {
+        withServices: [Uuid.parse(serviceUuid)], scanMode: ScanMode.balanced).listen((event) {
       if (kDebugMode) {
         print(">> device: " + event.name);
       }

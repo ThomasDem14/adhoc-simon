@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 class GameWidgets extends StatelessWidget {
 
   final Widget child;
-  final ValueGetter<GameColors> onPressed;
+  final ValueGetter<GameColors> colorToDisplay;
+  final ValueSetter<GameColors> onTap;
 
-  GameWidgets({this.onPressed, this.child});
+  GameWidgets({this.colorToDisplay, this.child, this.onTap});
 
   Color _getColor(GameColors color) {
     Color returnColor;
@@ -36,18 +37,21 @@ class GameWidgets extends StatelessWidget {
     return _getColor(GameColors.Default);
   }
 
-  Widget _ledButton(GameColors initialColor, GameColors onPressedColor) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: _getColor(initialColor),
-          width: 10,
+  Widget _ledButton(GameColors initialColor, GameColors colorToDisplay, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: _getColor(initialColor),
+            width: 10,
+          ),
+          borderRadius: BorderRadius.circular(100.0),
+          color: _getColorToDisplay(colorToDisplay, initialColor),
         ),
-        borderRadius: BorderRadius.circular(100.0),
-        color: _getColorToDisplay(onPressedColor, initialColor),
+        width: 90,
+        height: 90,
       ),
-      width: 90,
-      height: 90,
     );
   }
 
@@ -60,8 +64,8 @@ class GameWidgets extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _ledButton(GameColors.Blue, onPressed()),
-              _ledButton(GameColors.Red, onPressed()),
+              _ledButton(GameColors.Blue, colorToDisplay(), () => onTap(GameColors.Blue)),
+              _ledButton(GameColors.Red, colorToDisplay(), () => onTap(GameColors.Red)),
             ],
           ),
         ),
@@ -70,8 +74,8 @@ class GameWidgets extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _ledButton(GameColors.Yellow, onPressed()),
-              _ledButton(GameColors.Green, onPressed()),
+              _ledButton(GameColors.Yellow, colorToDisplay(), () => onTap(GameColors.Yellow)),
+              _ledButton(GameColors.Green, colorToDisplay(), () => onTap(GameColors.Green)),
             ],
           ),
         ),

@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:adhoc_gaming/adhoc/adhoc_constants.dart';
+import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_plugin/adhoc_plugin.dart';
 import 'package:flutter/material.dart';
 
@@ -29,8 +30,11 @@ class AdhocPlayer extends ChangeNotifier {
   void connectPeer(AdHocDevice peer) async {
     // Establish connection to the peer
     await _manager.connect(peer);
+
     _discovered.removeWhere((element) => element.label == peer.label);
-    _peers.add(peer);
+    if (!_peers.any((element) => element.label == peer.label)) {
+      _peers.add(peer);
+    }
 
     notifyListeners();
   }
@@ -57,6 +61,13 @@ class AdhocPlayer extends ChangeNotifier {
     // Then disconnect
     _manager.disconnectAll();
     notifyListeners();
+  }
+
+  void sendColorTapped(GameColors color) {
+    var message = HashMap<String, dynamic>();
+    message.putIfAbsent('type', () => MessageType.sendColorTapped.name);
+    message.putIfAbsent('color', () => color);
+    _manager.broadcast(message);
   }
 
   // Actions in the game page
@@ -90,7 +101,9 @@ class AdhocPlayer extends ChangeNotifier {
         break;
       case AdHocType.onConnection:
         print("----- onConnection with device ${event.device.label}");
-        _peers.add(event.device);
+        if (!_peers.any((element) => element.label == event.device.label)) {
+          _peers.add(event.device);
+        }
         _discovered
             .removeWhere((element) => element.label == event.device.label);
         notifyListeners();
@@ -137,6 +150,12 @@ class AdhocPlayer extends ChangeNotifier {
                 _deviceDictionary.putIfAbsent(event.device.label, () => name));
         notifyListeners();
         break;
+
+      case MessageType.sendColorTapped:
+        var color = data['color'] as GameColors;
+        // TO DO
+        notifyListeners();
+        break;
     }
   }
 
@@ -164,5 +183,5 @@ class AdhocPlayer extends ChangeNotifier {
   List<AdHocDevice> getDiscoveredDevices() => _discovered;
   List<AdHocDevice> getPeeredDevices() => _peers;
 
-  int getNbPlayers() => _DEBUG ? 4 : _peers.length;
+  int getNbPlayers() => _peers.length + 1;
 }

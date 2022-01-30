@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:adhoc_gaming/adhoc/adhoc_player.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_gaming/game/game_widgets.dart';
@@ -5,7 +7,30 @@ import 'package:adhoc_gaming/game/simon_game.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class GamePage extends StatelessWidget {
+class GamePage extends StatefulWidget {
+  @override
+  _GamePageState createState() => _GamePageState();
+}
+
+class _GamePageState extends State<GamePage> {
+  StreamSubscription _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscription = Provider.of<AdhocPlayer>(context, listen: false)
+        .colorStream
+        .listen((color) {
+      Provider.of<SimonGame>(context, listen: false).processInput(color);
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -31,25 +56,15 @@ class GamePage extends StatelessWidget {
                     onTap: (GameColors color) {
                       if (!game.isWaitingForInput()) return;
 
-                      bool result = game.processInput(color);
-                      if (!result) {
-                        game.setGameOver();
-                      }
-
                       Provider.of<AdhocPlayer>(context, listen: false)
                           .sendColorTapped(color);
                     },
                     colorToDisplay: () => game.getCurrentColor(),
                     child: game.isPlayingSequence()
                         ? const Text("Sequence playing")
-                        : Text(game.getPlayerTurn() == 0
-                            ? "You"
-                            : Provider.of<AdhocPlayer>(context, listen: false)
-                                .getPlayerName(Provider.of<AdhocPlayer>(context,
-                                        listen: false)
-                                    .getPeeredDevices()
-                                    .elementAt(game.getPlayerTurn())
-                                    .label)),
+                        : Text(Provider.of<AdhocPlayer>(context, listen: false)
+                            .getPlayers()
+                            .elementAt(game.getPlayerTurn())),
                   );
                 },
               ),

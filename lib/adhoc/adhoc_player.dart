@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:adhoc_gaming/adhoc/adhoc_constants.dart';
@@ -10,17 +11,26 @@ class AdhocPlayer extends ChangeNotifier {
   List<AdHocDevice> _discovered = List.empty(growable: true);
   List<AdHocDevice> _peers = List.empty(growable: true);
 
+  List<String> _players = List.empty(growable: true);
+
   String _name;
   var _deviceDictionary = Map<String, String>();
 
-  bool _startGame = false;
+  // ignore: close_sinks
+  StreamController _startGameStreamController = StreamController<bool>();
+  Stream startGameStream;
 
-  static const bool _DEBUG = true;
+  // ignore: close_sinks
+  StreamController _colorStreamController = StreamController<GameColors>();
+  Stream colorStream;
 
   AdhocPlayer() {
     _manager.enableBle(3600);
     _manager.eventStream.listen(_processAdHocEvent);
     _manager.open = true;
+
+    startGameStream = _startGameStreamController.stream;
+    colorStream = _colorStreamController.stream;
   }
 
   // Actions in the main page
@@ -40,17 +50,18 @@ class AdhocPlayer extends ChangeNotifier {
   }
 
   void startGame() {
-    _startGame = true;
-    notifyListeners();
+    _startGameStreamController.add(true);
+
+    _players = _deviceDictionary.values.toList();
 
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.startGame.name);
-    message.putIfAbsent('peers', () => _peers);
+    message.putIfAbsent('players', () => _players);
     _manager.broadcast(message);
   }
 
   void leaveGroup() {
-    _startGame = false;
+    _startGameStreamController.add(false);
 
     // Send leave message
     var message = HashMap<String, dynamic>();
@@ -63,14 +74,16 @@ class AdhocPlayer extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Actions in the game page
+
   void sendColorTapped(GameColors color) {
+    _colorStreamController.add(color);
+
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.sendColorTapped.name);
     message.putIfAbsent('color', () => color);
     _manager.broadcast(message);
   }
-
-  // Actions in the game page
 
   // Process messages
 
@@ -133,7 +146,8 @@ class AdhocPlayer extends ChangeNotifier {
     MessageType type = getMessageTypeFromString(data['type'] as String);
     switch (type) {
       case MessageType.startGame:
-        _startGame = true;
+        _startGameStreamController.add(true);
+        _players = data['players'];
         notifyListeners();
         break;
 
@@ -153,8 +167,8 @@ class AdhocPlayer extends ChangeNotifier {
 
       case MessageType.sendColorTapped:
         var color = data['color'] as GameColors;
-        // TO DO
-        notifyListeners();
+        _colorStreamController.add(color);
+        //notifyListeners();
         break;
     }
   }
@@ -163,7 +177,9 @@ class AdhocPlayer extends ChangeNotifier {
 
   String getPlayerName(String label) =>
       _deviceDictionary[label] ?? "Player $label";
+
   String getName() => _name ?? "";
+
   void setName(String name) {
     _name = name;
     _deviceDictionary.update(_manager.ownAddress, (value) => name,
@@ -178,10 +194,9 @@ class AdhocPlayer extends ChangeNotifier {
     _manager.broadcast(message);
   }
 
-  bool hasGameStarted() => _startGame;
-
   List<AdHocDevice> getDiscoveredDevices() => _discovered;
   List<AdHocDevice> getPeeredDevices() => _peers;
+  List<String> getPlayers() => _players;
 
-  int getNbPlayers() => _peers.length + 1;
+  int getNbPlayers() => _players.length;
 }

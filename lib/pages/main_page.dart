@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:adhoc_gaming/adhoc/adhoc_player.dart';
 import 'package:adhoc_gaming/game/simon_game.dart';
 import 'package:adhoc_gaming/pages/game_page.dart';
@@ -6,12 +8,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
+  @override
+  _MainPageState createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
   final textController = TextEditingController();
+  StreamSubscription _subscription;
 
   @override
-  Widget build(BuildContext context) {
-    if (Provider.of<AdhocPlayer>(context).hasGameStarted()) {
+  void initState() {
+    super.initState();
+    _subscription = Provider.of<AdhocPlayer>(context, listen: false)
+        .startGameStream
+        .listen((event) {
+      if (!event) return;
+
       SchedulerBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => ChangeNotifierProvider(
@@ -24,8 +37,17 @@ class MainPage extends StatelessWidget {
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (_) => TransitionDialog()));
       });
-    }
+    });
+  }
 
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -96,8 +118,9 @@ class MainPage extends StatelessWidget {
                                   subtitle: Center(child: Text('$type: $mac')),
                                 ),
                                 TextButton(
-                                  child: const Text('Connect'), 
-                                  onPressed: () async => player.connectPeer(device),
+                                  child: const Text('Connect'),
+                                  onPressed: () async =>
+                                      player.connectPeer(device),
                                 ),
                               ],
                             ),
@@ -151,8 +174,11 @@ class MainPage extends StatelessWidget {
                               children: <Widget>[
                                 ListTile(
                                   leading: Icon(Icons.person),
-                                  title: Center(child: Text(peers.elementAt(index).name)),
-                                  subtitle: Center(child: Text(player.getPlayerName(peers.elementAt(index).label))),
+                                  title: Center(
+                                      child: Text(peers.elementAt(index).name)),
+                                  subtitle: Center(
+                                      child: Text(player.getPlayerName(
+                                          peers.elementAt(index).label))),
                                 ),
                               ],
                             ),

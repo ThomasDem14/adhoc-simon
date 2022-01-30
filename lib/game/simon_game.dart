@@ -97,7 +97,7 @@ class SimonGame extends ChangeNotifier {
     return _currentSequence.elementAt(turn);
   }
 
-  bool processInput(GameColors color) {
+  void processInput(GameColors color) {
     _lastInput = color;
 
     if (_getColor(_turnWaiting) == color) {
@@ -109,14 +109,9 @@ class SimonGame extends ChangeNotifier {
       }
 
       notifyListeners();
-      return true;
+      return;
     }
 
-    notifyListeners();
-    return false;
-  }
-
-  void setGameOver() {
     _gameOver = true;
     _isWaitingForInput = false;
     notifyListeners();

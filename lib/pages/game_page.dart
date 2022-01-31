@@ -13,21 +13,34 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> {
-  StreamSubscription _subscription;
+  List<StreamSubscription> _subscriptions = List.empty(growable: true);
 
   @override
   void initState() {
     super.initState();
-    _subscription = Provider.of<AdhocPlayer>(context, listen: false)
+
+    _subscriptions.add(Provider.of<AdhocPlayer>(context, listen: false)
         .colorStream
         .listen((color) {
       Provider.of<SimonGame>(context, listen: false).processInput(color);
-    });
+    }));
+
+    _subscriptions.add(Provider.of<AdhocPlayer>(context, listen: false)
+        .levelGameStream
+        .listen((restart) {
+      if (restart) {
+        Provider.of<SimonGame>(context, listen: false).restart();
+      } else {
+        Provider.of<SimonGame>(context, listen: false).startLevel();
+      }
+    }));
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    _subscriptions.forEach((sub) {
+      sub.cancel();
+    });
     super.dispose();
   }
 
@@ -73,13 +86,14 @@ class _GamePageState extends State<GamePage> {
               child: Provider.of<SimonGame>(context).isGameOver()
                   ? ElevatedButton(
                       child: const Text("Restart"),
-                      onPressed: Provider.of<SimonGame>(context, listen: false)
-                          .restart,
+                      onPressed: () => Provider.of<AdhocPlayer>(context, listen: false)
+                          .sendNextLevel(true),
                     )
                   : ElevatedButton(
                       child: const Text("Continue"),
-                      onPressed: Provider.of<SimonGame>(context, listen: false)
-                          .startLevel,
+                      onPressed: () =>
+                          Provider.of<AdhocPlayer>(context, listen: false)
+                              .sendNextLevel(false),
                     ),
             ),
             SizedBox(height: 20),

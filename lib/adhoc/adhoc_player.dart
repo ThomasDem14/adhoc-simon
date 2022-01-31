@@ -21,6 +21,10 @@ class AdhocPlayer extends ChangeNotifier {
   Stream startGameStream;
 
   // ignore: close_sinks
+  StreamController _levelGameStreamController = StreamController<bool>();
+  Stream levelGameStream;
+
+  // ignore: close_sinks
   StreamController _colorStreamController = StreamController<GameColors>();
   Stream colorStream;
 
@@ -30,6 +34,7 @@ class AdhocPlayer extends ChangeNotifier {
     _manager.open = true;
 
     startGameStream = _startGameStreamController.stream;
+    levelGameStream = _levelGameStreamController.stream;
     colorStream = _colorStreamController.stream;
   }
 
@@ -75,6 +80,15 @@ class AdhocPlayer extends ChangeNotifier {
   }
 
   // Actions in the game page
+
+  void sendNextLevel(bool restart) {
+    _levelGameStreamController.add(restart);
+
+    var message = HashMap<String, dynamic>();
+    message.putIfAbsent('type', () => MessageType.sendLevelChange.name);
+    message.putIfAbsent('restart', () => restart);
+    _manager.broadcast(message);
+  }
 
   void sendColorTapped(GameColors color) {
     _colorStreamController.add(color);
@@ -168,7 +182,11 @@ class AdhocPlayer extends ChangeNotifier {
       case MessageType.sendColorTapped:
         var color = data['color'] as GameColors;
         _colorStreamController.add(color);
-        //notifyListeners();
+        break;
+
+      case MessageType.sendLevelChange:
+        var restart = data['restart'] as bool;
+        _levelGameStreamController.add(restart);
         break;
     }
   }

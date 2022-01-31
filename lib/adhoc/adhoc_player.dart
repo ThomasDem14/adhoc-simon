@@ -17,7 +17,7 @@ class AdhocPlayer extends ChangeNotifier {
   var _deviceDictionary = Map<String, String>();
 
   // ignore: close_sinks
-  StreamController _startGameStreamController = StreamController<bool>();
+  StreamController _startGameStreamController = StreamController<int>();
   Stream startGameStream;
 
   // ignore: close_sinks
@@ -54,20 +54,19 @@ class AdhocPlayer extends ChangeNotifier {
     notifyListeners();
   }
 
-  void startGame() {
-    _startGameStreamController.add(true);
+  void startGame(int seed) {
+    _startGameStreamController.add(seed);
 
     _players = _deviceDictionary.values.toList();
 
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.startGame.name);
     message.putIfAbsent('players', () => _players);
+    message.putIfAbsent('seed', () => seed);
     _manager.broadcast(message);
   }
 
   void leaveGroup() {
-    _startGameStreamController.add(false);
-
     // Send leave message
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.leaveGroup.name);
@@ -95,7 +94,7 @@ class AdhocPlayer extends ChangeNotifier {
 
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.sendColorTapped.name);
-    message.putIfAbsent('color', () => color);
+    message.putIfAbsent('color', () => color.name);
     _manager.broadcast(message);
   }
 
@@ -160,9 +159,11 @@ class AdhocPlayer extends ChangeNotifier {
     MessageType type = getMessageTypeFromString(data['type'] as String);
     switch (type) {
       case MessageType.startGame:
-        _startGameStreamController.add(true);
-        _players = data['players'];
-        notifyListeners();
+        var seed = data['seed'] as int;
+        var list = data['players'] as List<dynamic>;
+        _players = list.map((element) => element.toString()).toList();
+
+        _startGameStreamController.add(seed);
         break;
 
       case MessageType.leaveGroup:
@@ -180,8 +181,8 @@ class AdhocPlayer extends ChangeNotifier {
         break;
 
       case MessageType.sendColorTapped:
-        var color = data['color'] as GameColors;
-        _colorStreamController.add(color);
+        var color = data['color'] as String;
+        _colorStreamController.add(getGameColorsFromString(color));
         break;
 
       case MessageType.sendLevelChange:

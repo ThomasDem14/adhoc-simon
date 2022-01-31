@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:adhoc_gaming/adhoc/adhoc_player.dart';
 import 'package:adhoc_gaming/game/simon_game.dart';
@@ -14,6 +15,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  final Random randomSeed = new Random();
   final textController = TextEditingController();
   StreamSubscription _subscription;
 
@@ -22,15 +24,13 @@ class _MainPageState extends State<MainPage> {
     super.initState();
     _subscription = Provider.of<AdhocPlayer>(context, listen: false)
         .startGameStream
-        .listen((event) {
-      if (!event) return;
-
+        .listen((seed) {
       SchedulerBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => ChangeNotifierProvider(
             create: (context) => SimonGame(
-                Provider.of<AdhocPlayer>(context, listen: false)
-                    .getNbPlayers()),
+                Provider.of<AdhocPlayer>(context, listen: false).getNbPlayers(),
+                seed),
             child: GamePage(),
           ),
         ));
@@ -153,8 +153,9 @@ class _MainPageState extends State<MainPage> {
                       textStyle: TextStyle(color: Colors.white),
                       primary: Colors.blue,
                     ),
-                    onPressed: Provider.of<AdhocPlayer>(context, listen: false)
-                        .startGame,
+                    onPressed: () =>
+                        Provider.of<AdhocPlayer>(context, listen: false)
+                            .startGame(randomSeed.nextInt(0x7fffffff)),
                     child: const Text("Start game with group"),
                   ),
                 ),

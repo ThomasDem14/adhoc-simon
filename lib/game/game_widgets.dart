@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class GameWidgets extends StatelessWidget {
 
   final Widget child;
-  final ValueGetter<GameColors> colorToDisplay;
+  final GameColors colorToDisplay;
   final ValueSetter<GameColors> onTap;
 
   GameWidgets({this.colorToDisplay, this.child, this.onTap});
@@ -64,8 +64,8 @@ class GameWidgets extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _ledButton(GameColors.Blue, colorToDisplay(), () => onTap(GameColors.Blue)),
-              _ledButton(GameColors.Red, colorToDisplay(), () => onTap(GameColors.Red)),
+              _ledButton(GameColors.Blue, colorToDisplay, () => onTap(GameColors.Blue)),
+              _ledButton(GameColors.Red, colorToDisplay, () => onTap(GameColors.Red)),
             ],
           ),
         ),
@@ -74,8 +74,8 @@ class GameWidgets extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _ledButton(GameColors.Yellow, colorToDisplay(), () => onTap(GameColors.Yellow)),
-              _ledButton(GameColors.Green, colorToDisplay(), () => onTap(GameColors.Green)),
+              _ledButton(GameColors.Yellow, colorToDisplay, () => onTap(GameColors.Yellow)),
+              _ledButton(GameColors.Green, colorToDisplay, () => onTap(GameColors.Green)),
             ],
           ),
         ),

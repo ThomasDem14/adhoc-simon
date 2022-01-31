@@ -4,7 +4,8 @@ import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:flutter/material.dart';
 
 class SimonGame extends ChangeNotifier {
-  static final Random random = new Random();
+  int _seed;
+  Random _random;
 
   final int _nbPlayers;
 
@@ -22,13 +23,16 @@ class SimonGame extends ChangeNotifier {
   List<GameColors> _currentSequence;
   GameColors _lastInput = GameColors.Default;
 
-  SimonGame(this._nbPlayers) {
+  SimonGame(this._nbPlayers, this._seed) {
     // Generate a new empty sequence
     _currentSequence = new List.empty(growable: true);
+
+    // Define the instance of random with given seed
+    _random = new Random(_seed);
   }
 
   GameColors _randomColor() {
-    return GameColors.values[random.nextInt(GameColors.values.length - 1)];
+    return GameColors.values[_random.nextInt(GameColors.values.length - 1)];
   }
 
   void restart() {
@@ -117,7 +121,7 @@ class SimonGame extends ChangeNotifier {
     notifyListeners();
   }
 
-  int getPlayerTurn() => _turnSequence % _nbPlayers;
+  int getPlayerTurn() => _turnWaiting % _nbPlayers;
   bool isPlayingSequence() => _isPlayingSequence;
   bool isWaitingForInput() => _isWaitingForInput;
   bool isGameOver() => _gameOver;

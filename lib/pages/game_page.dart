@@ -72,7 +72,7 @@ class _GamePageState extends State<GamePage> {
                       Provider.of<AdhocPlayer>(context, listen: false)
                           .sendColorTapped(color);
                     },
-                    colorToDisplay: () => game.getCurrentColor(),
+                    colorToDisplay: game.getCurrentColor(),
                     child: game.isPlayingSequence()
                         ? const Text("Sequence playing")
                         : Text(Provider.of<AdhocPlayer>(context, listen: false)

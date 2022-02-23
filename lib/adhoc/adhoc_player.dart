@@ -75,6 +75,8 @@ class AdhocPlayer extends ChangeNotifier {
 
     // Then disconnect
     _manager.disconnectAll();
+    _discovered = List.empty(growable: true);
+    _peers = List.empty(growable: true);
     notifyListeners();
   }
 
@@ -110,9 +112,10 @@ class AdhocPlayer extends ChangeNotifier {
         break;
       case AdHocType.onDiscoveryCompleted:
         print("----- onDiscoveryCompleted");
+        print(event.data);
         for (final discovered in (event.data as Map).values) {
           if (!_discovered.any(
-              (element) => element.label == (discovered as AdHocDevice).label))
+              (element) => element.name == (discovered as AdHocDevice).name))
             _discovered.add(discovered as AdHocDevice);
         }
         notifyListeners();

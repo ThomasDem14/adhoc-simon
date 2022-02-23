@@ -106,6 +106,7 @@ class _GamePageState extends State<GamePage> {
 
   Future<void> onReturn(BuildContext context) async {
     Provider.of<AdhocPlayer>(context, listen: false).leaveGroup();
+    dispose();
     return Navigator.of(context).pop();
   }
 }

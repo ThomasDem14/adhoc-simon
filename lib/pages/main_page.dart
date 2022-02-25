@@ -176,7 +176,7 @@ class _MainPageState extends State<MainPage> {
                                   title: Center(child: Text(device.name)),
                                   subtitle: Center(
                                       child:
-                                          Text(player.getPlayerName(device.label))),
+                                          Text(player.getPlayerName(device.name))),
                                 ),
                                 TextButton(
                                   child: const Text('Connected'),

@@ -46,8 +46,8 @@ class AdhocPlayer extends ChangeNotifier {
     // Establish connection to the peer
     await _manager.connect(peer);
 
-    _discovered.removeWhere((element) => element.label == peer.label);
-    if (!_peers.any((element) => element.label == peer.label)) {
+    _discovered.removeWhere((element) => element.name == peer.name);
+    if (!_peers.any((element) => element.name == peer.name)) {
       _peers.add(peer);
     }
 
@@ -129,17 +129,17 @@ class AdhocPlayer extends ChangeNotifier {
         _processDataReceived(event);
         break;
       case AdHocType.onConnection:
-        print("----- onConnection with device ${event.device.label}");
-        if (!_peers.any((element) => element.label == event.device.label)) {
+        print("----- onConnection with device ${event.device.name}");
+        if (!_peers.any((element) => element.name == event.device.name)) {
           _peers.add(event.device);
         }
         _discovered
-            .removeWhere((element) => element.label == event.device.label);
+            .removeWhere((element) => element.name == event.device.name);
         notifyListeners();
         break;
       case AdHocType.onConnectionClosed:
-        print("----- onConnectionClosed with device ${event.device.label}");
-        _peers.removeWhere((element) => element.label == event.device.label);
+        print("----- onConnectionClosed with device ${event.device.name}");
+        _peers.removeWhere((element) => element.name == event.device.name);
         notifyListeners();
         break;
       case AdHocType.onInternalException:
@@ -171,15 +171,15 @@ class AdhocPlayer extends ChangeNotifier {
 
       case MessageType.leaveGroup:
         _manager.disconnect(event.device);
-        _peers.removeWhere((device) => device.label == event.device.label);
+        _peers.removeWhere((device) => device.name == event.device.name);
         notifyListeners();
         break;
 
       case MessageType.changeName:
         var name = data['name'] as String;
-        _deviceDictionary.update(event.device.label, (value) => name,
+        _deviceDictionary.update(event.device.name, (value) => name,
             ifAbsent: () =>
-                _deviceDictionary.putIfAbsent(event.device.label, () => name));
+                _deviceDictionary.putIfAbsent(event.device.name, () => name));
         notifyListeners();
         break;
 
@@ -197,8 +197,8 @@ class AdhocPlayer extends ChangeNotifier {
 
   /* Getters & setters */
 
-  String getPlayerName(String label) =>
-      _deviceDictionary[label] ?? "Player $label";
+  String getPlayerName(String name) =>
+      _deviceDictionary[name] ?? "Player $name";
 
   String getName() => _name ?? "";
 

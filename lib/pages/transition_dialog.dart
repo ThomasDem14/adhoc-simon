@@ -1,4 +1,4 @@
-import 'package:adhoc_gaming/adhoc/adhoc_player.dart';
+import 'package:adhoc_gaming/player/player_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,7 +11,7 @@ class TransitionDialog extends StatelessWidget {
       actions: <Widget>[
         TextButton(
           onPressed: () {
-            Provider.of<AdhocPlayer>(context, listen: false).leaveGroup();
+            Provider.of<PlayerManager>(context, listen: false).leaveGroup();
             Navigator.pop(context, 'Leave');
             Navigator.of(context).pop();
           },

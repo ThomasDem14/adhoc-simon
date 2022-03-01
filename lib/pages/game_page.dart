@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:adhoc_gaming/adhoc/adhoc_player.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_gaming/game/game_widgets.dart';
 import 'package:adhoc_gaming/game/simon_game.dart';
+import 'package:adhoc_gaming/player/player_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,13 +19,13 @@ class _GamePageState extends State<GamePage> {
   void initState() {
     super.initState();
 
-    _subscriptions.add(Provider.of<AdhocPlayer>(context, listen: false)
+    _subscriptions.add(Provider.of<PlayerManager>(context, listen: false)
         .colorStream
         .listen((color) {
       Provider.of<SimonGame>(context, listen: false).processInput(color);
     }));
 
-    _subscriptions.add(Provider.of<AdhocPlayer>(context, listen: false)
+    _subscriptions.add(Provider.of<PlayerManager>(context, listen: false)
         .levelGameStream
         .listen((restart) {
       if (restart) {
@@ -69,15 +69,17 @@ class _GamePageState extends State<GamePage> {
                     onTap: (GameColors color) {
                       if (!game.isWaitingForInput()) return;
 
-                      Provider.of<AdhocPlayer>(context, listen: false)
+                      Provider.of<PlayerManager>(context, listen: false)
                           .sendColorTapped(color);
                     },
                     colorToDisplay: game.getCurrentColor(),
                     child: game.isPlayingSequence()
                         ? const Text("Sequence playing")
-                        : Text(Provider.of<AdhocPlayer>(context, listen: false)
-                            .getPlayers()
-                            .elementAt(game.getPlayerTurn())),
+                        : Text(
+                            Provider.of<PlayerManager>(context, listen: false)
+                                .getPeeredDevices()
+                                .elementAt(game.getPlayerTurn())
+                                .name),
                   );
                 },
               ),
@@ -86,13 +88,14 @@ class _GamePageState extends State<GamePage> {
               child: Provider.of<SimonGame>(context).isGameOver()
                   ? ElevatedButton(
                       child: const Text("Restart"),
-                      onPressed: () => Provider.of<AdhocPlayer>(context, listen: false)
-                          .sendNextLevel(true),
+                      onPressed: () =>
+                          Provider.of<PlayerManager>(context, listen: false)
+                              .sendNextLevel(true),
                     )
                   : ElevatedButton(
                       child: const Text("Continue"),
                       onPressed: () =>
-                          Provider.of<AdhocPlayer>(context, listen: false)
+                          Provider.of<PlayerManager>(context, listen: false)
                               .sendNextLevel(false),
                     ),
             ),
@@ -105,7 +108,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   Future<void> onReturn(BuildContext context) async {
-    Provider.of<AdhocPlayer>(context, listen: false).leaveGroup();
+    Provider.of<PlayerManager>(context, listen: false).leaveGroup();
     dispose();
     return Navigator.of(context).pop();
   }

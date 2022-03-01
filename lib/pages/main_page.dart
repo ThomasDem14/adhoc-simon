@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:adhoc_gaming/adhoc/adhoc_player.dart';
 import 'package:adhoc_gaming/game/simon_game.dart';
 import 'package:adhoc_gaming/pages/game_page.dart';
 import 'package:adhoc_gaming/pages/transition_dialog.dart';
+import 'package:adhoc_gaming/player/player_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
@@ -22,14 +22,15 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    _subscription = Provider.of<AdhocPlayer>(context, listen: false)
+    _subscription = Provider.of<PlayerManager>(context, listen: false)
         .startGameStream
         .listen((seed) {
       SchedulerBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => ChangeNotifierProvider(
             create: (context) => SimonGame(
-                Provider.of<AdhocPlayer>(context, listen: false).getNbPlayers(),
+                Provider.of<PlayerManager>(context, listen: false)
+                    .getNbPlayers(),
                 seed),
             child: GamePage(),
           ),
@@ -55,12 +56,12 @@ class _MainPageState extends State<MainPage> {
         title: const Text('Ad Hoc Main Room'),
       ),
       body: Column(children: [
-        // You
+        // Top box with input form for the name
         Expanded(
           flex: 1,
           child: Container(
             margin: EdgeInsets.all(10.0),
-            child: Consumer<AdhocPlayer>(
+            child: Consumer<PlayerManager>(
               builder: (context, player, child) => TextField(
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
@@ -72,7 +73,7 @@ class _MainPageState extends State<MainPage> {
             ),
           ),
         ),
-        // Available players
+        // Bottom box for buttons and devices
         Expanded(
           flex: 7,
           child: Container(
@@ -92,8 +93,9 @@ class _MainPageState extends State<MainPage> {
                       textStyle: TextStyle(color: Colors.white),
                       primary: Colors.blue,
                     ),
-                    onPressed: Provider.of<AdhocPlayer>(context, listen: false)
-                        .startDiscovery,
+                    onPressed:
+                        Provider.of<PlayerManager>(context, listen: false)
+                            .startDiscovery,
                     child: const Text("Search for available players"),
                   ),
                 ),
@@ -108,7 +110,7 @@ class _MainPageState extends State<MainPage> {
                       primary: Colors.blue,
                     ),
                     onPressed: () =>
-                        Provider.of<AdhocPlayer>(context, listen: false)
+                        Provider.of<PlayerManager>(context, listen: false)
                             .startGame(randomSeed.nextInt(0x7fffffff)),
                     child: const Text("Start game with group"),
                   ),
@@ -124,7 +126,7 @@ class _MainPageState extends State<MainPage> {
                       primary: Colors.blue,
                     ),
                     onPressed: () =>
-                        Provider.of<AdhocPlayer>(context, listen: false)
+                        Provider.of<PlayerManager>(context, listen: false)
                             .leaveGroup(),
                     child: const Text("Disconnect all"),
                   ),
@@ -133,7 +135,7 @@ class _MainPageState extends State<MainPage> {
                 // Device list
                 Expanded(
                   flex: 7,
-                  child: Consumer<AdhocPlayer>(
+                  child: Consumer<PlayerManager>(
                     builder: (context, player, child) {
                       var devices = player.getDiscoveredDevices();
                       var peers = player.getPeeredDevices();
@@ -141,6 +143,7 @@ class _MainPageState extends State<MainPage> {
                         padding: EdgeInsets.all(5.0),
                         itemCount: devices.length + peers.length,
                         itemBuilder: (BuildContext context, int index) {
+                          // Discovered devices
                           if (index < devices.length) {
                             var device = devices.elementAt(index);
                             var type = device.mac.ble == '' ? 'Wi-Fi' : 'BLE';
@@ -154,7 +157,8 @@ class _MainPageState extends State<MainPage> {
                                   ListTile(
                                     leading: Icon(Icons.device_unknown),
                                     title: Center(child: Text(device.name)),
-                                    subtitle: Center(child: Text('$type: $mac')),
+                                    subtitle:
+                                        Center(child: Text('$type: $mac')),
                                   ),
                                   TextButton(
                                     child: const Text('Connect'),
@@ -165,26 +169,30 @@ class _MainPageState extends State<MainPage> {
                               ),
                             );
                           }
-                          int i = index - devices.length;
-                          var device = peers.elementAt(i);
-                          return Card(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                ListTile(
-                                  leading: Icon(Icons.person),
-                                  title: Center(child: Text(device.name)),
-                                  subtitle: Center(
-                                      child:
-                                          Text(player.getPlayerName(device.name))),
-                                ),
-                                TextButton(
-                                  child: const Text('Connected'),
-                                  onPressed: () => {},
-                                ),
-                              ],
-                            ),
-                          );
+                          // Connected devices
+                          else {
+                            int i = index - devices.length;
+                            var device = peers.elementAt(i);
+                            return Card(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  ListTile(
+                                    leading: Icon(Icons.person),
+                                    title: Center(child: Text(device.name)),
+                                    subtitle: Center(
+                                        child: Text(device.isAdhoc
+                                            ? 'Adhoc player'
+                                            : 'Internet player')),
+                                  ),
+                                  TextButton(
+                                    child: const Text('Connected'),
+                                    onPressed: () => {},
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
                         },
                       );
                     },

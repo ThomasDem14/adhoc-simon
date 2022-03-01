@@ -15,13 +15,14 @@ dependencies:
   provider: ^6.0.0
 
   uuid: ^3.0.5
-
+  
   adhoc_plugin:
-    path: /Users/demoulinthomas/Desktop/TFE/TFE_2021/adhoc_plugin
+    path: "../adhoc_plugin"
 
   cupertino_icons: ^1.0.2
 
-  flutter_spinbox: ^0.6.0
+  flutter_spinbox: ^0.7.0
+  firebase_core: ^1.13.1
 
 dev_dependencies:
   flutter_test:

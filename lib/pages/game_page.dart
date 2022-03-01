@@ -1,10 +1,49 @@
+import 'dart:async';
+
 import 'package:adhoc_gaming/adhoc/adhoc_player.dart';
+import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_gaming/game/game_widgets.dart';
 import 'package:adhoc_gaming/game/simon_game.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class GamePage extends StatelessWidget {
+class GamePage extends StatefulWidget {
+  @override
+  _GamePageState createState() => _GamePageState();
+}
+
+class _GamePageState extends State<GamePage> {
+  List<StreamSubscription> _subscriptions = List.empty(growable: true);
+
+  @override
+  void initState() {
+    super.initState();
+
+    _subscriptions.add(Provider.of<AdhocPlayer>(context, listen: false)
+        .colorStream
+        .listen((color) {
+      Provider.of<SimonGame>(context, listen: false).processInput(color);
+    }));
+
+    _subscriptions.add(Provider.of<AdhocPlayer>(context, listen: false)
+        .levelGameStream
+        .listen((restart) {
+      if (restart) {
+        Provider.of<SimonGame>(context, listen: false).restart();
+      } else {
+        Provider.of<SimonGame>(context, listen: false).startLevel();
+      }
+    }));
+  }
+
+  @override
+  void dispose() {
+    _subscriptions.forEach((sub) {
+      sub.cancel();
+    });
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -27,25 +66,35 @@ class GamePage extends StatelessWidget {
               child: Consumer<SimonGame>(
                 builder: (context, game, child) {
                   return GameWidgets(
-                    onPressed: () => game.getCurrentColor(),
-                    child: game.isPlayingSequence() 
-                      ? const Text("Sequence playing")
-                      : Text(true ? "player" :
-                          Provider.of<AdhocPlayer>(context, listen: false)
-                            .getPlayerName(
-                              Provider.of<AdhocPlayer>(context, listen: false)
-                                .getPeeredDevices()
-                                .elementAt(game.getPlayerTurn())
-                                .label
-                      )),
+                    onTap: (GameColors color) {
+                      if (!game.isWaitingForInput()) return;
+
+                      Provider.of<AdhocPlayer>(context, listen: false)
+                          .sendColorTapped(color);
+                    },
+                    colorToDisplay: game.getCurrentColor(),
+                    child: game.isPlayingSequence()
+                        ? const Text("Sequence playing")
+                        : Text(Provider.of<AdhocPlayer>(context, listen: false)
+                            .getPlayers()
+                            .elementAt(game.getPlayerTurn())),
                   );
                 },
               ),
             ),
-            ElevatedButton(
-              child: const Text("Continue"),
-              onPressed:
-                  Provider.of<SimonGame>(context, listen: false).startLevel,
+            Container(
+              child: Provider.of<SimonGame>(context).isGameOver()
+                  ? ElevatedButton(
+                      child: const Text("Restart"),
+                      onPressed: () => Provider.of<AdhocPlayer>(context, listen: false)
+                          .sendNextLevel(true),
+                    )
+                  : ElevatedButton(
+                      child: const Text("Continue"),
+                      onPressed: () =>
+                          Provider.of<AdhocPlayer>(context, listen: false)
+                              .sendNextLevel(false),
+                    ),
             ),
             SizedBox(height: 20),
           ],
@@ -57,6 +106,7 @@ class GamePage extends StatelessWidget {
 
   Future<void> onReturn(BuildContext context) async {
     Provider.of<AdhocPlayer>(context, listen: false).leaveGroup();
+    dispose();
     return Navigator.of(context).pop();
   }
 }

@@ -7,6 +7,12 @@ enum MessageType {
 
   // send info that name changed
   changeName,
+
+  // send notification to new level
+  sendLevelChange,
+
+  // send the color you tapped
+  sendColorTapped,
 }
 
 MessageType getMessageTypeFromString(String typeString) {
@@ -16,6 +22,10 @@ MessageType getMessageTypeFromString(String typeString) {
     return MessageType.leaveGroup;
   else if (typeString == "changeName")
     return MessageType.changeName;
+  else if (typeString == "sendColorTapped")
+    return MessageType.sendColorTapped;
+  else if (typeString == "sendLevelChange")
+    return MessageType.sendLevelChange;
   else
     return null;
 }

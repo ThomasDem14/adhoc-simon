@@ -38,9 +38,6 @@ class PlayerManager extends ChangeNotifier {
     _adhocManager = AdhocManager(_id);
     _firebaseManager = FirebaseManager(_id);
 
-    // Add yourself in the list of peers
-    _peers.add(ConnectedDevice(_id, false, null, null));
-
     // Set up the exposed streams
     startGameStream = _startGameStreamController.stream;
     levelGameStream = _levelGameStreamController.stream;
@@ -56,6 +53,9 @@ class PlayerManager extends ChangeNotifier {
   }
 
   void startGame(int seed) {
+    // Add yourself in the list of peers
+    _peers.add(ConnectedDevice(_id, false, _name, null));
+
     _adhocManager.startGame(seed, _peers);
     _firebaseManager.startGame(seed, _peers);
 
@@ -88,10 +88,6 @@ class PlayerManager extends ChangeNotifier {
   void setName(String name) {
     _name = name;
 
-    // Update in the list of peers as well.
-    var index = _peers.indexWhere((element) => element.uuid == _id);
-    _peers[index].name = name;
-
     _adhocManager.setName(name);
     _firebaseManager.setName(name);
   }
@@ -113,32 +109,36 @@ class PlayerManager extends ChangeNotifier {
     switch (type) {
       case MessageType.adhocDiscovered:
         _discovered.add(data['data']);
+        notifyListeners();
         break;
 
       case MessageType.adhocConnection:
         var peer = data['data'] as AdHocDevice;
         _discovered.removeWhere((element) => element.name == peer.name);
         _peers.add(ConnectedDevice(data['id'], true, null, peer));
+        notifyListeners();
         break;
 
       case MessageType.firebaseConnection:
         _peers.add(ConnectedDevice(data['id'], false, data["name"], null));
+        notifyListeners();
         break;
 
       case MessageType.startGame:
         var seed = data['seed'] as int;
-        var list = data['players'] as List<dynamic>;
-        // TODO
+        _peers = data['players'] as List<ConnectedDevice>;
         _startGameStreamController.add(seed);
         break;
 
       case MessageType.leaveGroup:
         _peers.removeWhere((device) => device.uuid == data['id']);
+        notifyListeners();
         break;
 
       case MessageType.changeName:
         var index = _peers.indexWhere((element) => element.uuid == data['id']);
         _peers[index].name = data['name'] as String;
+        notifyListeners();
         break;
 
       case MessageType.sendColorTapped:
@@ -154,7 +154,6 @@ class PlayerManager extends ChangeNotifier {
   }
 
   // Getters
-  String getName() => _name ?? "You";
   List<AdHocDevice> getDiscoveredDevices() => _discovered;
   List<ConnectedDevice> getPeeredDevices() => _peers;
   int getNbPlayers() => _peers.length;

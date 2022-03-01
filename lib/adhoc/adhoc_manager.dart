@@ -108,7 +108,7 @@ class AdhocManager extends ServiceManager {
   // Send a message with type and data into the stream.
   void _sendMessageStream(MessageType type, Object data) {
     var message = HashMap<String, dynamic>();
-    message.putIfAbsent('type', () => type);
+    message.putIfAbsent('type', () => type.name);
     message.putIfAbsent('data', () => data);
     message.putIfAbsent('id', () => id);
     streamController.add(message);

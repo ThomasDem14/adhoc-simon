@@ -13,6 +13,7 @@ class FirebaseManager extends ServiceManager {
   StreamSubscription _subscription;
 
   FirebaseManager(id) : super(id) {
+    _database.ref().set("rooms");
     _listen(_randomRoom());
   }
 
@@ -22,7 +23,7 @@ class FirebaseManager extends ServiceManager {
     this.name = name;
 
     await _reference.push().set({
-      "type": MessageType.changeName,
+      "type": MessageType.changeName.name,
       "name": name,
       "id": id,
     });
@@ -30,7 +31,7 @@ class FirebaseManager extends ServiceManager {
 
   void leaveGroup() async {
     await _reference.push().set({
-      "type": MessageType.leaveGroup,
+      "type": MessageType.leaveGroup.name,
       "id": id,
     });
 
@@ -40,7 +41,7 @@ class FirebaseManager extends ServiceManager {
 
   void sendColorTapped(GameColors color) async {
     await _reference.push().set({
-      "type": MessageType.sendColorTapped,
+      "type": MessageType.sendColorTapped.name,
       "id": id,
       "color": color,
     });
@@ -48,7 +49,7 @@ class FirebaseManager extends ServiceManager {
 
   void sendNextLevel(bool restart) async {
     await _reference.push().set({
-      "type": MessageType.sendLevelChange,
+      "type": MessageType.sendLevelChange.name,
       "id": id,
       "restart": restart,
     });
@@ -56,7 +57,7 @@ class FirebaseManager extends ServiceManager {
 
   void startGame(int seed, List players) async {
     await _reference.push().set({
-      "type": MessageType.startGame,
+      "type": MessageType.startGame.name,
       "id": id,
       "seed": seed,
       "players": players,
@@ -70,7 +71,7 @@ class FirebaseManager extends ServiceManager {
     _listen(roomId);
 
     await _reference.push().set({
-      "type": MessageType.firebaseConnection,
+      "type": MessageType.firebaseConnection.name,
       "id": id,
     });
   }

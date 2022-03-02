@@ -4,16 +4,19 @@ import 'dart:math';
 import 'package:adhoc_gaming/player/message_type.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_gaming/player/service_manager.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 class FirebaseManager extends ServiceManager {
-  FirebaseDatabase _database = FirebaseDatabase.instance;
+  FirebaseDatabase _database = FirebaseDatabase.instanceFor(
+      app: Firebase.app(),
+      databaseURL:
+          "https://adhoc-simon-default-rtdb.europe-west1.firebasedatabase.app/");
   DatabaseReference _reference;
 
   StreamSubscription _subscription;
 
   FirebaseManager(id) : super(id) {
-    _database.ref().set("rooms");
     _listen(_randomRoom());
   }
 
@@ -88,15 +91,10 @@ class FirebaseManager extends ServiceManager {
     });
   }
 
-  // Generate a new room and return its random 6-digit code.
+  // Generate a new random 6-digit code.
   String _randomRoom() {
     var rng = new Random();
     var code = rng.nextInt(900000) + 100000;
-    var str = code.toString();
-
-    // Add a new child to the rooms
-    _database.ref('rooms').push().set(str);
-
-    return str;
+    return code.toString();
   }
 }

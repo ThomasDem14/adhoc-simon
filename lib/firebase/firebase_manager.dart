@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
+import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_gaming/player/service_manager.dart';
@@ -60,12 +62,12 @@ class FirebaseManager extends ServiceManager {
     });
   }
 
-  void startGame(int seed, List players) async {
+  void startGame(int seed, List<ConnectedDevice> players) async {
     await _reference.push().set({
       "type": MessageType.startGame.name,
       "id": id,
       "seed": seed,
-      "players": players,
+      "players": jsonEncode(players),
     });
   }
 

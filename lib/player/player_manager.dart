@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:adhoc_gaming/adhoc/adhoc_manager.dart';
 import 'package:adhoc_gaming/firebase/firebase_manager.dart';
@@ -127,7 +128,8 @@ class PlayerManager extends ChangeNotifier {
 
       case MessageType.startGame:
         var seed = data['seed'] as int;
-        _peers = data['players'] as List<ConnectedDevice>;
+        var json = jsonDecode(data['players'] as String) as List;
+        _peers = json.map((p) => ConnectedDevice.fromJson(p)).toList();
         _startGameStreamController.add(seed);
         break;
 

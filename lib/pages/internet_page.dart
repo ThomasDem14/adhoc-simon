@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class InternetPage extends StatelessWidget {
-  InternetPage({Key key}) : super(key: key);
+  final TextEditingController textController;
 
-  final textController = TextEditingController();
+  InternetPage({this.textController});
 
   @override
   Widget build(BuildContext context) {
     return Column(children: [
+      SizedBox(height: 5),
       // Your room id
-      Expanded(
-        flex: 1,
+      SizedBox(
+        height: 60,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             minimumSize: Size(double.infinity, 0),
@@ -26,28 +27,37 @@ class InternetPage extends StatelessWidget {
       ),
       SizedBox(height: 5),
       // Button to join another room by id
-      Expanded(
-        flex: 1,
+      SizedBox(
+        height: 60,
         child: Row(
           children: [
-            TextField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Enter the 6-digit code',
+            Expanded(
+              flex: 2,
+              child: TextField(
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Enter the 6-digit code',
+                ),
+                controller: textController,
               ),
-              controller: textController,
             ),
             SizedBox(width: 5),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 0),
-                textStyle: TextStyle(color: Colors.white),
-                primary: Colors.blue,
+            Expanded(
+              flex: 1,
+              child: SizedBox(
+                height: 60,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 0),
+                    textStyle: TextStyle(color: Colors.white),
+                    primary: Colors.blue,
+                  ),
+                  onPressed: () =>
+                      Provider.of<PlayerManager>(context, listen: false)
+                          .connectRoom(textController.text),
+                  child: const Text("Join"),
+                ),
               ),
-              onPressed: () =>
-                  Provider.of<PlayerManager>(context, listen: false)
-                      .connectRoom(textController.text),
-              child: const Text("Join"),
             ),
           ],
         ),
@@ -55,7 +65,6 @@ class InternetPage extends StatelessWidget {
       SizedBox(height: 5),
       // Connected (internet only) devices
       Expanded(
-        flex: 7,
         child: Consumer<PlayerManager>(
           builder: (context, player, child) {
             var peers = player.getPeeredDevices();

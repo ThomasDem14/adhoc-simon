@@ -8,9 +8,10 @@ class AdhocPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
+      SizedBox(height: 5),
       // Button discovery
-      Expanded(
-        flex: 1,
+      SizedBox(
+        height: 60,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             minimumSize: Size(double.infinity, 0),
@@ -24,8 +25,8 @@ class AdhocPage extends StatelessWidget {
       ),
       SizedBox(height: 5),
       // Button disconnect all
-      Expanded(
-        flex: 1,
+      SizedBox(
+        height: 60,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             minimumSize: Size(double.infinity, 0),
@@ -40,7 +41,6 @@ class AdhocPage extends StatelessWidget {
       SizedBox(height: 5),
       // Device list
       Expanded(
-        flex: 7,
         child: Consumer<PlayerManager>(
           builder: (context, player, child) {
             var devices = player.getDiscoveredDevices();

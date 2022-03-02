@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:adhoc_gaming/game/game_constants.dart';
+import 'package:adhoc_gaming/player/connected_device.dart';
 
 abstract class ServiceManager {
   // ignore: close_sinks
@@ -23,7 +24,7 @@ abstract class ServiceManager {
   void leaveGroup();
 
   // Notify others that the game has started.
-  void startGame(int seed, List players);
+  void startGame(int seed, List<ConnectedDevice> players);
 
   /// ************  Game page actions ************/
 

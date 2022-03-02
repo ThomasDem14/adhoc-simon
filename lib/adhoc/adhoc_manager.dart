@@ -1,5 +1,7 @@
 import 'dart:collection';
+import 'dart:convert';
 
+import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_gaming/player/service_manager.dart';
@@ -26,11 +28,11 @@ class AdhocManager extends ServiceManager {
     _manager.broadcast(message);
   }
 
-  void startGame(int seed, List players) {
+  void startGame(int seed, List<ConnectedDevice> players) {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.startGame.name);
     message.putIfAbsent('id', () => id);
-    message.putIfAbsent('players', () => players);
+    message.putIfAbsent('players', () => jsonEncode(players));
     message.putIfAbsent('seed', () => seed);
     _manager.broadcast(message);
   }

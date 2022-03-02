@@ -19,7 +19,8 @@ class OrganisationPage extends StatefulWidget {
 }
 
 class _OrganisationPage extends State<OrganisationPage> {
-  final textController = TextEditingController();
+  final nameController = TextEditingController();
+  final roomController = TextEditingController();
   StreamSubscription _subscription;
 
   @override
@@ -65,8 +66,8 @@ class _OrganisationPage extends State<OrganisationPage> {
             Provider.of<PageSettings>(context, listen: false).controller,
         children: [
           AdhocPage(),
-          MainPage(),
-          InternetPage(),
+          MainPage(textController: nameController),
+          InternetPage(textController: roomController),
         ],
         onPageChanged: (i) => Provider.of<PageSettings>(context, listen: false)
             .modifyIndex(i, false),

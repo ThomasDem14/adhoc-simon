@@ -14,10 +14,12 @@ class FirebaseManager extends ServiceManager {
           "https://adhoc-simon-default-rtdb.europe-west1.firebasedatabase.app/");
   DatabaseReference _reference;
 
+  String _roomId;
   StreamSubscription _subscription;
 
   FirebaseManager(id) : super(id) {
-    _listen(_randomRoom());
+    _roomId = _randomRoom();
+    _listen(_roomId);
   }
 
   ///******** ServiceManager functions ********/
@@ -71,6 +73,7 @@ class FirebaseManager extends ServiceManager {
 
   // Connect to a new room and start listening to the messages in that room.
   void connectRoom(String roomId) async {
+    _roomId = roomId;
     _listen(roomId);
 
     await _reference.push().set({
@@ -97,4 +100,6 @@ class FirebaseManager extends ServiceManager {
     var code = rng.nextInt(900000) + 100000;
     return code.toString();
   }
+
+  String getRoomId() => _roomId;
 }

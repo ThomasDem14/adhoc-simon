@@ -102,6 +102,7 @@ class PlayerManager extends ChangeNotifier {
 
   void connectRoom(String roomId) async {
     _firebaseManager.connectRoom(roomId);
+    notifyListeners();
   }
 
   void _processData(Map data) {
@@ -157,4 +158,5 @@ class PlayerManager extends ChangeNotifier {
   List<AdHocDevice> getDiscoveredDevices() => _discovered;
   List<ConnectedDevice> getPeeredDevices() => _peers;
   int getNbPlayers() => _peers.length;
+  String getRoomId() => _firebaseManager.getRoomId();
 }

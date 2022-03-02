@@ -1,5 +1,6 @@
-import 'package:adhoc_gaming/pages/main_page.dart';
 import 'package:adhoc_gaming/pages/game_page.dart';
+import 'package:adhoc_gaming/pages/organisation_page.dart';
+import 'package:adhoc_gaming/pages/page_settings.dart';
 import 'package:adhoc_gaming/player/player_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,8 +18,11 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => new PlayerManager(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => PlayerManager()),
+        ChangeNotifierProvider(create: (context) => PageSettings()),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'AdHoc Game',
@@ -26,7 +30,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
         ),
         routes: {
-          '/': (context) => MainPage(),
+          '/': (context) => OrganisationPage(),
           '/game': (context) => GamePage(),
         },
         initialRoute: '/',

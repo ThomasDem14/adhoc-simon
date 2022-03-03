@@ -43,14 +43,15 @@ class FirebaseManager extends ServiceManager {
     });
 
     // Create a new room.
-    _listen(_randomRoom());
+    _roomId = _randomRoom();
+    _listen(_roomId);
   }
 
   void sendColorTapped(GameColors color) async {
     await _reference.push().set({
       "type": MessageType.sendColorTapped.name,
       "id": id,
-      "color": color,
+      "color": color.name,
     });
   }
 
@@ -80,6 +81,7 @@ class FirebaseManager extends ServiceManager {
 
     await _reference.push().set({
       "type": MessageType.firebaseConnection.name,
+      "name": name,
       "id": id,
     });
   }
@@ -92,6 +94,11 @@ class FirebaseManager extends ServiceManager {
 
     _subscription = _reference.onChildAdded.listen((DatabaseEvent event) {
       var data = event.snapshot.value as Map;
+
+      // Do not consider messages from yourself from Firebase
+      var senderId = data['id'] as String;
+      if (id == senderId) return;
+
       streamController.add(data);
     });
   }

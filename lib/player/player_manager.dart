@@ -110,7 +110,14 @@ class PlayerManager extends ChangeNotifier {
     MessageType type = getMessageTypeFromString(data['type'] as String);
     switch (type) {
       case MessageType.adhocDiscovered:
-        _discovered.add(data['data']);
+        var discovered = data['data'] as AdHocDevice;
+        // Check for duplicate
+        var duplicate = _discovered.firstWhere(
+            (element) => discovered.type == 0
+                ? element.mac.wifi == discovered.mac.wifi
+                : element.mac.ble == discovered.mac.ble,
+            orElse: () => null);
+        if (duplicate == null) _discovered.add(discovered);
         notifyListeners();
         break;
 
@@ -122,7 +129,12 @@ class PlayerManager extends ChangeNotifier {
         break;
 
       case MessageType.firebaseConnection:
-        _peers.add(ConnectedDevice(data['id'], false, data["name"], null));
+        var peer = ConnectedDevice(data['id'], false, data["name"], null);
+        // Check for duplicate
+        var duplicate = _peers.firstWhere(
+            (element) => peer.uuid == element.uuid,
+            orElse: () => null);
+        if (duplicate == null) _peers.add(peer);
         notifyListeners();
         break;
 
@@ -140,7 +152,7 @@ class PlayerManager extends ChangeNotifier {
 
       case MessageType.changeName:
         var index = _peers.indexWhere((element) => element.uuid == data['id']);
-        _peers[index].name = data['name'] as String;
+        if (index >= 0) _peers[index].name = data['name'] as String;
         notifyListeners();
         break;
 

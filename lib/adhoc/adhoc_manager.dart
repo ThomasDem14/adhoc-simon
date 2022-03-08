@@ -11,14 +11,32 @@ class AdhocManager extends ServiceManager {
   final TransferManager _manager = TransferManager(true);
 
   AdhocManager(id) : super(id) {
-    _manager.enableBle(3600);
+    _manager.enable();
     _manager.eventStream.listen(_processAdHocEvent);
     _manager.open = true;
+
+    if (_manager.isBluetoothEnabled() || _manager.isWifiEnabled()) {
+      // If it was disabled, enable.
+      if (!this.enabled) {
+        print('[AdhocManager] Enabled');
+        this.enabled = true;
+        connectivityController.add(true);
+      }
+    } else {
+      // If it was enabled, disable.
+      if (this.enabled) {
+        print('[FirebaseManager] Disabled');
+        this.enabled = false;
+        connectivityController.add(false);
+      }
+    }
   }
 
   ///******** ServiceManager functions ********/
 
   void setName(String name) {
+    if (!this.enabled) return;
+
     this.name = name;
 
     var message = HashMap<String, dynamic>();
@@ -29,6 +47,8 @@ class AdhocManager extends ServiceManager {
   }
 
   void startGame(int seed, List<ConnectedDevice> players) {
+    if (!this.enabled) return;
+
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.startGame.name);
     message.putIfAbsent('id', () => id);
@@ -38,6 +58,8 @@ class AdhocManager extends ServiceManager {
   }
 
   void leaveGroup() {
+    if (!this.enabled) return;
+
     // Send leave message
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.leaveGroup.name);
@@ -49,6 +71,8 @@ class AdhocManager extends ServiceManager {
   }
 
   void sendNextLevel(bool restart) {
+    if (!this.enabled) return;
+
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.sendLevelChange.name);
     message.putIfAbsent('restart', () => restart);
@@ -57,6 +81,8 @@ class AdhocManager extends ServiceManager {
   }
 
   void sendColorTapped(GameColors color) {
+    if (!this.enabled) return;
+
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.sendColorTapped.name);
     message.putIfAbsent('color', () => color.name);
@@ -118,11 +144,15 @@ class AdhocManager extends ServiceManager {
 
   // Start the adhoc discover process
   void startDiscovery() {
+    if (!this.enabled) return;
+
     _manager.discovery();
   }
 
   // Establish connection to the peer
   void connectPeer(AdHocDevice peer) async {
+    if (!this.enabled) return;
+
     await _manager.connect(peer);
   }
 }

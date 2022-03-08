@@ -5,14 +5,21 @@ import 'package:adhoc_gaming/player/connected_device.dart';
 
 abstract class ServiceManager {
   // ignore: close_sinks
-  StreamController streamController = StreamController<Map>();
-  Stream stream;
+  StreamController streamController = StreamController<Map>.broadcast();
+  Stream<Map> stream;
+
+  // ignore: close_sinks
+  StreamController connectivityController = StreamController<bool>.broadcast();
+  Stream<bool> connectivity;
+  bool enabled;
 
   String id;
   String name;
 
   ServiceManager(this.id) {
+    enabled = false;
     stream = streamController.stream;
+    connectivity = connectivityController.stream;
   }
 
   /// ************  Main page actions ************/

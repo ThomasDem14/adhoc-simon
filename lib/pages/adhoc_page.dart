@@ -7,6 +7,9 @@ class AdhocPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!Provider.of<PlayerManager>(context).isAdhocEnabled())
+      return const Center(child: Text("No Adhoc connection"));
+
     return Column(children: [
       SizedBox(height: 5),
       // Button discovery

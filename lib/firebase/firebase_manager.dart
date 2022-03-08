@@ -6,6 +6,7 @@ import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_gaming/player/service_manager.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -20,13 +21,33 @@ class FirebaseManager extends ServiceManager {
   StreamSubscription _subscription;
 
   FirebaseManager(id) : super(id) {
-    _roomId = _randomRoom();
-    _listen(_roomId);
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      // Check for Internet connectivity.
+      if (result == ConnectivityResult.wifi) {
+        // If it was disabled, enable.
+        if (!this.enabled) {
+          print('[FirebaseManager] Enabled');
+          this.enabled = true;
+          connectivityController.add(true);
+          _roomId = _randomRoom();
+          _listen(_roomId);
+        }
+      } else if (result == ConnectivityResult.none) {
+        // If it was enabled, disable.
+        if (this.enabled) {
+          print('[FirebaseManager] Disabled');
+          this.enabled = false;
+          connectivityController.add(false);
+        }
+      }
+    });
   }
 
   ///******** ServiceManager functions ********/
 
   void setName(String name) async {
+    if (!this.enabled) return;
+
     this.name = name;
     _updateName();
 
@@ -38,6 +59,8 @@ class FirebaseManager extends ServiceManager {
   }
 
   void leaveGroup() async {
+    if (!this.enabled) return;
+
     await _leaveProcess();
 
     // Create a new room.
@@ -46,6 +69,8 @@ class FirebaseManager extends ServiceManager {
   }
 
   void sendColorTapped(GameColors color) async {
+    if (!this.enabled) return;
+
     _reference.push().set({
       "type": MessageType.sendColorTapped.name,
       "id": id,
@@ -54,6 +79,8 @@ class FirebaseManager extends ServiceManager {
   }
 
   void sendNextLevel(bool restart) async {
+    if (!this.enabled) return;
+
     _reference.push().set({
       "type": MessageType.sendLevelChange.name,
       "id": id,
@@ -62,6 +89,8 @@ class FirebaseManager extends ServiceManager {
   }
 
   void startGame(int seed, List<ConnectedDevice> players) async {
+    if (!this.enabled) return;
+
     _reference.push().set({
       "type": MessageType.startGame.name,
       "id": id,
@@ -74,6 +103,8 @@ class FirebaseManager extends ServiceManager {
 
   // Connect to a new room and start listening to the messages in that room.
   void connectRoom(String roomId) async {
+    if (!this.enabled) return;
+
     // Leave the current room.
     await _leaveProcess();
 

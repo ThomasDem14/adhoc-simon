@@ -16,21 +16,26 @@ class PlayerManager extends ChangeNotifier {
   String _name;
 
   AdhocManager _adhocManager;
+  StreamSubscription _adhocManagerSubscription;
   FirebaseManager _firebaseManager;
+  StreamSubscription _firebaseManagerSubscription;
 
   List<AdHocDevice> _discovered = List.empty(growable: true);
   List<ConnectedDevice> _peers = List.empty(growable: true);
 
   // ignore: close_sinks
-  StreamController _startGameStreamController = StreamController<int>();
+  StreamController _startGameStreamController =
+      StreamController<int>.broadcast();
   Stream startGameStream;
 
   // ignore: close_sinks
-  StreamController _levelGameStreamController = StreamController<bool>();
+  StreamController _levelGameStreamController =
+      StreamController<bool>.broadcast();
   Stream levelGameStream;
 
   // ignore: close_sinks
-  StreamController _colorStreamController = StreamController<GameColors>();
+  StreamController _colorStreamController =
+      StreamController<GameColors>.broadcast();
   Stream colorStream;
 
   PlayerManager() {
@@ -45,11 +50,28 @@ class PlayerManager extends ChangeNotifier {
     colorStream = _colorStreamController.stream;
 
     // Listen to streams of the managers
-    _adhocManager.stream.listen((data) {
-      _processData(data);
+    _adhocManager.connectivity.listen((enabled) {
+      if (enabled) {
+        _adhocManagerSubscription = _adhocManager.stream.listen((data) {
+          _processData(data);
+        });
+      } else {
+        _adhocManagerSubscription.cancel();
+      }
+      notifyListeners();
     });
-    _firebaseManager.stream.listen((data) {
-      _processData(data);
+
+    _firebaseManager.connectivity.listen((enabled) {
+      if (enabled) {
+        print('[FirebaseManager] Start listening');
+        _firebaseManagerSubscription = _firebaseManager.stream.listen((data) {
+          _processData(data);
+        });
+      } else {
+        print('[FirebaseManager] Stop listening');
+        _firebaseManagerSubscription.cancel();
+      }
+      notifyListeners();
     });
   }
 
@@ -173,4 +195,6 @@ class PlayerManager extends ChangeNotifier {
   List<ConnectedDevice> getPeeredDevices() => _peers;
   int getNbPlayers() => _peers.length;
   String getRoomId() => _firebaseManager.getRoomId();
+  bool isFirebaseEnabled() => _firebaseManager.enabled;
+  bool isAdhocEnabled() => _adhocManager.enabled;
 }

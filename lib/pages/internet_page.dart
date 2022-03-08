@@ -9,6 +9,9 @@ class InternetPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!Provider.of<PlayerManager>(context).isFirebaseEnabled())
+      return const Center(child: Text("No Internet connection"));
+
     return Column(children: [
       SizedBox(height: 5),
       // Your room id

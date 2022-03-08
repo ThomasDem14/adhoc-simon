@@ -28,8 +28,9 @@ class FirebaseManager extends ServiceManager {
 
   void setName(String name) async {
     this.name = name;
+    _updateName();
 
-    await _reference.push().set({
+    _reference.push().set({
       "type": MessageType.changeName.name,
       "name": name,
       "id": id,
@@ -37,10 +38,7 @@ class FirebaseManager extends ServiceManager {
   }
 
   void leaveGroup() async {
-    await _reference.push().set({
-      "type": MessageType.leaveGroup.name,
-      "id": id,
-    });
+    await _leaveProcess();
 
     // Create a new room.
     _roomId = _randomRoom();
@@ -48,7 +46,7 @@ class FirebaseManager extends ServiceManager {
   }
 
   void sendColorTapped(GameColors color) async {
-    await _reference.push().set({
+    _reference.push().set({
       "type": MessageType.sendColorTapped.name,
       "id": id,
       "color": color.name,
@@ -56,7 +54,7 @@ class FirebaseManager extends ServiceManager {
   }
 
   void sendNextLevel(bool restart) async {
-    await _reference.push().set({
+    _reference.push().set({
       "type": MessageType.sendLevelChange.name,
       "id": id,
       "restart": restart,
@@ -64,7 +62,7 @@ class FirebaseManager extends ServiceManager {
   }
 
   void startGame(int seed, List<ConnectedDevice> players) async {
-    await _reference.push().set({
+    _reference.push().set({
       "type": MessageType.startGame.name,
       "id": id,
       "seed": seed,
@@ -76,10 +74,13 @@ class FirebaseManager extends ServiceManager {
 
   // Connect to a new room and start listening to the messages in that room.
   void connectRoom(String roomId) async {
-    _roomId = roomId;
-    _listen(roomId);
+    // Leave the current room.
+    await _leaveProcess();
 
-    await _reference.push().set({
+    _roomId = roomId;
+    await _listen(roomId);
+
+    _reference.push().set({
       "type": MessageType.firebaseConnection.name,
       "name": name,
       "id": id,
@@ -87,19 +88,61 @@ class FirebaseManager extends ServiceManager {
   }
 
   // Listen to messages sent in the room specified by $id.
-  void _listen(String roomId) {
+  Future _listen(String roomId) async {
     if (_subscription != null) _subscription.cancel();
 
-    _reference = _database.ref('rooms/$roomId');
+    // Fetch users already in the room.
+    DataSnapshot snapshot = await _database.ref('rooms/$roomId/users').get();
+    if (snapshot.exists) {
+      // For each user, send a firebaseConnection message.
+      var object = snapshot.value as Map;
+      for (Object uuid in object.keys) {
+        streamController.add({
+          "type": MessageType.firebaseConnection.name,
+          "name": object[uuid]["name"].toString(),
+          "id": uuid.toString(),
+        });
+      }
+    }
 
+    // Add yourself in the user list.
+    _updateName();
+
+    // Listen to the message channel.
+    _reference = _database.ref('rooms/$roomId/messages');
     _subscription = _reference.onChildAdded.listen((DatabaseEvent event) {
       var data = event.snapshot.value as Map;
 
-      // Do not consider messages from yourself from Firebase
+      // Do not consider messages from yourself from Firebase.
       var senderId = data['id'] as String;
       if (id == senderId) return;
 
       streamController.add(data);
+    });
+  }
+
+  // Implements the operations required when leaving a group.
+  Future _leaveProcess() async {
+    // Send leaveGroup message.
+    await _reference.push().set({
+      "type": MessageType.leaveGroup.name,
+      "id": id,
+    });
+
+    // Remove yourself from the user list.
+    _database.ref('rooms/$_roomId/users/$id').remove();
+
+    // If no more users, delete channel.
+    DataSnapshot snapshot = await _database.ref('rooms/$_roomId/users').get();
+    if (!snapshot.exists) {
+      _reference.remove();
+    }
+  }
+
+  // Update the name in the users section.
+  void _updateName() async {
+    _database.ref('rooms/$_roomId/users/$id').set({
+      "name": name,
     });
   }
 

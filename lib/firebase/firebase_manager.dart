@@ -20,7 +20,11 @@ class FirebaseManager extends ServiceManager {
   String _roomId;
   StreamSubscription _subscription;
 
-  FirebaseManager(id) : super(id) {
+  FirebaseManager(id) : super(id);
+
+  ///******** ServiceManager functions ********/
+
+  void enable() {
     Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       // Check for Internet connectivity.
       if (result == ConnectivityResult.wifi) {
@@ -42,8 +46,6 @@ class FirebaseManager extends ServiceManager {
       }
     });
   }
-
-  ///******** ServiceManager functions ********/
 
   void setName(String name) async {
     if (!this.enabled) return;

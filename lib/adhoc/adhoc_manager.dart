@@ -10,7 +10,11 @@ import 'package:adhoc_plugin/adhoc_plugin.dart';
 class AdhocManager extends ServiceManager {
   final TransferManager _manager = TransferManager(true);
 
-  AdhocManager(id) : super(id) {
+  AdhocManager(id) : super(id);
+
+  ///******** ServiceManager functions ********/
+
+  void enable() {
     _manager.enable();
     _manager.eventStream.listen(_processAdHocEvent);
     _manager.open = true;
@@ -31,8 +35,6 @@ class AdhocManager extends ServiceManager {
       }
     }
   }
-
-  ///******** ServiceManager functions ********/
 
   void setName(String name) {
     if (!this.enabled) return;

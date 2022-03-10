@@ -52,15 +52,16 @@ class PlayerManager extends ChangeNotifier {
     // Listen to streams of the managers
     _adhocManager.connectivity.listen((enabled) {
       if (enabled) {
+        print('[AdhocManager] Start listening');
         _adhocManagerSubscription = _adhocManager.stream.listen((data) {
           _processData(data);
         });
       } else {
+        print('[AdhocManager] Stop listening');
         _adhocManagerSubscription.cancel();
       }
       notifyListeners();
     });
-
     _firebaseManager.connectivity.listen((enabled) {
       if (enabled) {
         print('[FirebaseManager] Start listening');
@@ -73,6 +74,10 @@ class PlayerManager extends ChangeNotifier {
       }
       notifyListeners();
     });
+
+    // Enable managers
+    _adhocManager.enable();
+    _firebaseManager.enable();
   }
 
   void startGame(int seed) {

@@ -22,6 +22,8 @@ abstract class ServiceManager {
     connectivity = connectivityController.stream;
   }
 
+  void enable();
+
   /// ************  Main page actions ************/
 
   // Notify others the updated name.

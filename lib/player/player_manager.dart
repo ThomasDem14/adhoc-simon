@@ -77,6 +77,8 @@ class PlayerManager extends ChangeNotifier {
   }
 
   void enable(String name) {
+    if (_enabled) return;
+
     _name = name;
     _enabled = true;
     // Enable managers
@@ -138,13 +140,13 @@ class PlayerManager extends ChangeNotifier {
     MessageType type = getMessageTypeFromString(data['type'] as String);
     switch (type) {
       case MessageType.adhocDiscovered:
-        var endpoint = data['data'] as String;
+        var endpoint = data['data'] as List<String>;
         // Check for duplicate
         var duplicate = _discovered.firstWhere(
-            (element) => endpoint == element.id,
+            (element) => endpoint[1] == element.id,
             orElse: () => null);
         if (duplicate == null)
-          _discovered.add(ConnectedDevice(endpoint, true, endpoint));
+          _discovered.add(ConnectedDevice(endpoint[1], true, endpoint[0]));
         notifyListeners();
         break;
 

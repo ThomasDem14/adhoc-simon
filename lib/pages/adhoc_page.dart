@@ -62,7 +62,7 @@ class AdhocPage extends StatelessWidget {
                         ListTile(
                           leading: Icon(Icons.device_unknown),
                           title: Center(child: Text(device.name)),
-                          subtitle: Center(child: Text(device.name)),
+                          subtitle: Center(child: Text(device.id)),
                         ),
                         TextButton(
                           child: const Text('Connect'),

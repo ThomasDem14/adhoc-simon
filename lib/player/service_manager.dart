@@ -24,20 +24,20 @@ abstract class ServiceManager {
 
   /// ************  Main page actions ************/
 
-  // Enable the manager and sets its name (definite).
+  /// Enable the manager and sets its name (definite).
   void enable(String name);
 
-  // Notify others that you leave the room.
+  /// Notify others that you leave the room.
   void leaveGroup();
 
-  // Notify others that the game has started.
+  /// Notify others that the game has started.
   void startGame(int seed, List<ConnectedDevice> players);
 
   /// ************  Game page actions ************/
 
-  // Notify that the next level has started.
+  /// Notify that the next level has started.
   void sendNextLevel(bool restart);
 
-  // Notify the color pressed.
+  /// Notify the color pressed.
   void sendColorTapped(GameColors color);
 }

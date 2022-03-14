@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
@@ -32,7 +33,7 @@ class NearbyManager extends ServiceManager {
     message.putIfAbsent('id', () => id);
     message.putIfAbsent('players', () => jsonEncode(players));
     message.putIfAbsent('seed', () => seed);
-    _manager.broadcast(message);
+    _manager.broadcast(_toByteArray(message));
   }
 
   void leaveGroup() {
@@ -42,7 +43,7 @@ class NearbyManager extends ServiceManager {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.leaveGroup.name);
     message.putIfAbsent('id', () => id);
-    _manager.broadcast(message);
+    _manager.broadcast(_toByteArray(message));
 
     // Then disconnect
     _manager.disconnectAll();
@@ -55,7 +56,7 @@ class NearbyManager extends ServiceManager {
     message.putIfAbsent('type', () => MessageType.sendLevelChange.name);
     message.putIfAbsent('restart', () => restart);
     message.putIfAbsent('id', () => id);
-    _manager.broadcast(message);
+    _manager.broadcast(_toByteArray(message));
   }
 
   void sendColorTapped(GameColors color) {
@@ -65,7 +66,7 @@ class NearbyManager extends ServiceManager {
     message.putIfAbsent('type', () => MessageType.sendColorTapped.name);
     message.putIfAbsent('color', () => color.name);
     message.putIfAbsent('id', () => id);
-    _manager.broadcast(message);
+    _manager.broadcast(_toByteArray(message));
   }
 
   ///******** Specific to AdhocManager ********/
@@ -77,29 +78,30 @@ class NearbyManager extends ServiceManager {
         print("----- onDiscoveryStarted");
         break;
       case NearbyMessageType.onEndpointDiscovered:
-        print("----- onEndpointDiscovered");
-        _sendMessageStream(MessageType.adhocDiscovered, event.endpoint);
+        print("----- onEndpointDiscovered: ${event.endpoint}");
+        _sendMessageStream(
+            MessageType.adhocDiscovered, [event.endpoint, event.endpointId]);
         break;
       case NearbyMessageType.onDiscoveryEnded:
         print("----- onDiscoveryEnded");
         break;
       case NearbyMessageType.onEndpointLost:
-        print("----- onEndpointLost");
+        print("----- onEndpointLost: ${event.endpointId}");
         break;
       case NearbyMessageType.onPayloadReceived:
-        print("----- onDataReceived");
-        streamController.add(event);
+        print("----- onPayloadReceived");
+        _processMsgReceived(event);
         break;
       case NearbyMessageType.onPayloadTransferred:
-        print("----- onForwardData");
-        streamController.add(event);
+        print("----- onPayloadTransferred");
+        _processMsgReceived(event);
         break;
       case NearbyMessageType.onConnectionAccepted:
-        print("----- onConnection with device ${event.endpoint}");
-        _sendMessageStream(MessageType.adhocConnection, event.endpoint);
+        print("----- onConnection with device ${event.endpointId}");
+        _sendMessageStream(MessageType.adhocConnection, event.endpointId);
         break;
       case NearbyMessageType.onConnectionEnded:
-        print("----- onConnectionClosed with device ${event.endpoint}");
+        print("----- onConnectionClosed with device ${event.endpointId}");
         break;
       default:
     }
@@ -112,6 +114,14 @@ class NearbyManager extends ServiceManager {
     message.putIfAbsent('data', () => data);
     message.putIfAbsent('id', () => id);
     streamController.add(message);
+  }
+
+  void _processMsgReceived(NearbyMessage message) {
+    print(message.payload.toString());
+  }
+
+  Uint8List _toByteArray(HashMap<String, dynamic> data) {
+    return Uint8List.fromList(data.toString().codeUnits);
   }
 
   // Start the adhoc discover process

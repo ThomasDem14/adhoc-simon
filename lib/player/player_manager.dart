@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:adhoc_gaming/adhoc/adhoc_manager.dart';
+import 'package:adhoc_gaming/adhoc/nearby_manager.dart';
 import 'package:adhoc_gaming/firebase/firebase_manager.dart';
 import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
-import 'package:adhoc_plugin/adhoc_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,13 +13,14 @@ class PlayerManager extends ChangeNotifier {
   Uuid _uuid = Uuid();
   String _id;
   String _name;
+  bool _enabled = false;
 
-  AdhocManager _adhocManager;
+  NearbyManager _adhocManager;
   StreamSubscription _adhocManagerSubscription;
   FirebaseManager _firebaseManager;
   StreamSubscription _firebaseManagerSubscription;
 
-  List<AdHocDevice> _discovered = List.empty(growable: true);
+  List<ConnectedDevice> _discovered = List.empty(growable: true);
   List<ConnectedDevice> _peers = List.empty(growable: true);
 
   // ignore: close_sinks
@@ -41,7 +41,7 @@ class PlayerManager extends ChangeNotifier {
   PlayerManager() {
     // Initialize the unique id to represent yourself
     _id = _uuid.v4();
-    _adhocManager = AdhocManager(_id);
+    _adhocManager = NearbyManager(_id);
     _firebaseManager = FirebaseManager(_id);
 
     // Set up the exposed streams
@@ -52,12 +52,12 @@ class PlayerManager extends ChangeNotifier {
     // Listen to streams of the managers
     _adhocManager.connectivity.listen((enabled) {
       if (enabled) {
-        print('[AdhocManager] Start listening');
+        print('[NearbyManager] Start listening');
         _adhocManagerSubscription = _adhocManager.stream.listen((data) {
           _processData(data);
         });
       } else {
-        print('[AdhocManager] Stop listening');
+        print('[NearbyManager] Stop listening');
         _adhocManagerSubscription.cancel();
       }
       notifyListeners();
@@ -74,15 +74,23 @@ class PlayerManager extends ChangeNotifier {
       }
       notifyListeners();
     });
+  }
 
+  void enable(String name) {
+    _name = name;
+    _enabled = true;
     // Enable managers
-    _adhocManager.enable();
-    _firebaseManager.enable();
+    _adhocManager.enable(name);
+    _firebaseManager.enable(name);
   }
 
   void startGame(int seed) {
     // Add yourself in the list of peers
-    _peers.add(ConnectedDevice(_id, false, _name, null));
+    _peers.add(ConnectedDevice(
+      _id,
+      false,
+      _name,
+    ));
 
     _adhocManager.startGame(seed, _peers);
     _firebaseManager.startGame(seed, _peers);
@@ -113,19 +121,12 @@ class PlayerManager extends ChangeNotifier {
     _colorStreamController.add(color);
   }
 
-  void setName(String name) {
-    _name = name;
-
-    _adhocManager.setName(name);
-    _firebaseManager.setName(name);
-  }
-
   void startDiscovery() {
     _adhocManager.startDiscovery();
   }
 
-  void connectPeer(AdHocDevice peer) async {
-    _adhocManager.connectPeer(peer);
+  void connectPeer(String endpoint) async {
+    _adhocManager.connectPeer(endpoint);
   }
 
   void connectRoom(String roomId) async {
@@ -137,29 +138,27 @@ class PlayerManager extends ChangeNotifier {
     MessageType type = getMessageTypeFromString(data['type'] as String);
     switch (type) {
       case MessageType.adhocDiscovered:
-        var discovered = data['data'] as AdHocDevice;
+        var endpoint = data['data'] as String;
         // Check for duplicate
         var duplicate = _discovered.firstWhere(
-            (element) => discovered.type == 0
-                ? element.mac.wifi == discovered.mac.wifi
-                : element.mac.ble == discovered.mac.ble,
+            (element) => endpoint == element.id,
             orElse: () => null);
-        if (duplicate == null) _discovered.add(discovered);
+        if (duplicate == null)
+          _discovered.add(ConnectedDevice(endpoint, true, endpoint));
         notifyListeners();
         break;
 
       case MessageType.adhocConnection:
-        var peer = data['data'] as AdHocDevice;
-        _discovered.removeWhere((element) => element.name == peer.name);
-        _peers.add(ConnectedDevice(data['id'], true, null, peer));
+        var peer = data['data'] as String;
+        _discovered.removeWhere((element) => element.name == peer);
+        _peers.add(ConnectedDevice(peer, true, peer));
         notifyListeners();
         break;
 
       case MessageType.firebaseConnection:
-        var peer = ConnectedDevice(data['id'], false, data["name"], null);
+        var peer = ConnectedDevice(data['id'], false, data["name"]);
         // Check for duplicate
-        var duplicate = _peers.firstWhere(
-            (element) => peer.uuid == element.uuid,
+        var duplicate = _peers.firstWhere((element) => peer.id == element.id,
             orElse: () => null);
         if (duplicate == null) _peers.add(peer);
         notifyListeners();
@@ -173,13 +172,7 @@ class PlayerManager extends ChangeNotifier {
         break;
 
       case MessageType.leaveGroup:
-        _peers.removeWhere((device) => device.uuid == data['id']);
-        notifyListeners();
-        break;
-
-      case MessageType.changeName:
-        var index = _peers.indexWhere((element) => element.uuid == data['id']);
-        if (index >= 0) _peers[index].name = data['name'] as String;
+        _peers.removeWhere((device) => device.id == data['id']);
         notifyListeners();
         break;
 
@@ -196,10 +189,11 @@ class PlayerManager extends ChangeNotifier {
   }
 
   // Getters
-  List<AdHocDevice> getDiscoveredDevices() => _discovered;
+  List<ConnectedDevice> getDiscoveredDevices() => _discovered;
   List<ConnectedDevice> getPeeredDevices() => _peers;
-  int getNbPlayers() => _peers.length;
-  String getRoomId() => _firebaseManager.getRoomId();
-  bool isFirebaseEnabled() => _firebaseManager.enabled;
-  bool isAdhocEnabled() => _adhocManager.enabled;
+  int get nbPlayers => _peers.length;
+  String get roomId => _firebaseManager.getRoomId();
+  bool get isFirebaseEnabled => _firebaseManager.enabled;
+  bool get isAdhocEnabled => _adhocManager.enabled;
+  bool get enabled => _enabled;
 }

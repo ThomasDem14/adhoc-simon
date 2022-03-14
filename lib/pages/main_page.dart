@@ -22,10 +22,24 @@ class MainPage extends StatelessWidget {
             hintText: 'Enter your name',
           ),
           controller: textController,
-          onChanged: (text) =>
-              Provider.of<PlayerManager>(context, listen: false).setName(text),
+          enabled: !Provider.of<PlayerManager>(context).enabled,
         ),
       ),
+      // Button enable
+      SizedBox(
+        height: 60,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            minimumSize: Size(double.infinity, 0),
+            textStyle: TextStyle(color: Colors.white),
+            primary: Colors.blue,
+          ),
+          onPressed: () => Provider.of<PlayerManager>(context, listen: false)
+              .enable(textController.text),
+          child: const Text("Confirm name"),
+        ),
+      ),
+      SizedBox(height: 5),
       // Button start game
       SizedBox(
         height: 60,

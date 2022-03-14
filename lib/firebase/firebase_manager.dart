@@ -24,7 +24,9 @@ class FirebaseManager extends ServiceManager {
 
   ///******** ServiceManager functions ********/
 
-  void enable() {
+  void enable(String name) {
+    this.name = name;
+
     Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       // Check for Internet connectivity.
       if (result == ConnectivityResult.wifi) {
@@ -44,19 +46,6 @@ class FirebaseManager extends ServiceManager {
           connectivityController.add(false);
         }
       }
-    });
-  }
-
-  void setName(String name) async {
-    if (!this.enabled) return;
-
-    this.name = name;
-    _updateName();
-
-    _reference.push().set({
-      "type": MessageType.changeName.name,
-      "name": name,
-      "id": id,
     });
   }
 
@@ -139,7 +128,9 @@ class FirebaseManager extends ServiceManager {
     }
 
     // Add yourself in the user list.
-    _updateName();
+    _database.ref('rooms/$_roomId/users/$id').set({
+      "name": name,
+    });
 
     // Listen to the message channel.
     _reference = _database.ref('rooms/$roomId/messages');
@@ -170,13 +161,6 @@ class FirebaseManager extends ServiceManager {
     if (!snapshot.exists) {
       _reference.remove();
     }
-  }
-
-  // Update the name in the users section.
-  void _updateName() async {
-    _database.ref('rooms/$_roomId/users/$id').set({
-      "name": name,
-    });
   }
 
   // Generate a new random 6-digit code.

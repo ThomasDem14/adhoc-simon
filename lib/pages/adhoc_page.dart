@@ -7,7 +7,7 @@ class AdhocPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!Provider.of<PlayerManager>(context).isAdhocEnabled())
+    if (!Provider.of<PlayerManager>(context).isAdhocEnabled)
       return const Center(child: Text("No Adhoc connection"));
 
     return Column(children: [
@@ -55,9 +55,6 @@ class AdhocPage extends StatelessWidget {
                 // Discovered devices
                 if (index < devices.length) {
                   var device = devices.elementAt(index);
-                  var type = device.mac.ble == '' ? 'Wi-Fi' : 'BLE';
-                  var mac =
-                      device.mac.ble == '' ? device.mac.wifi : device.mac.ble;
                   return Card(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -65,11 +62,11 @@ class AdhocPage extends StatelessWidget {
                         ListTile(
                           leading: Icon(Icons.device_unknown),
                           title: Center(child: Text(device.name)),
-                          subtitle: Center(child: Text('$type: $mac')),
+                          subtitle: Center(child: Text(device.name)),
                         ),
                         TextButton(
                           child: const Text('Connect'),
-                          onPressed: () async => player.connectPeer(device),
+                          onPressed: () async => player.connectPeer(device.id),
                         ),
                       ],
                     ),

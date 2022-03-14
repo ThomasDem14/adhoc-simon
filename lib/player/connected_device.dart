@@ -1,36 +1,25 @@
-import 'package:adhoc_plugin/adhoc_plugin.dart';
-
 class ConnectedDevice {
-  String uuid;
+  String id;
   bool isAdhoc;
   String name;
-  AdHocDevice adHocDevice;
 
-  ConnectedDevice(
-      String uuid, bool isAdhoc, String name, AdHocDevice adHocDevice) {
-    this.uuid = uuid;
+  ConnectedDevice(String id, bool isAdhoc, String name) {
+    this.id = id;
     this.isAdhoc = isAdhoc;
-    if (isAdhoc) {
-      this.adHocDevice = adHocDevice;
-      this.name = name ?? adHocDevice?.name;
-    } else {
-      this.name = name;
-    }
+    this.name = name;
   }
 
   factory ConnectedDevice.fromJson(Map<String, dynamic> json) {
     return ConnectedDevice(
-      json['uuid'],
+      json['id'],
       json['isAdhoc'],
       json['name'],
-      json['adHocDevice'],
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'uuid': uuid,
+        'id': id,
         'isAdhoc': isAdhoc,
         'name': name,
-        'adHocDevice': adHocDevice,
       };
 }

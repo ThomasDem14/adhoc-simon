@@ -9,7 +9,7 @@ class InternetPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!Provider.of<PlayerManager>(context).isFirebaseEnabled())
+    if (!Provider.of<PlayerManager>(context).isFirebaseEnabled)
       return const Center(child: Text("No Internet connection"));
 
     return Column(children: [
@@ -24,8 +24,7 @@ class InternetPage extends StatelessWidget {
             primary: Colors.blue,
           ),
           onPressed: () => {},
-          child:
-              Text("Room " + Provider.of<PlayerManager>(context).getRoomId()),
+          child: Text("Room " + Provider.of<PlayerManager>(context).roomId),
         ),
       ),
       SizedBox(height: 5),

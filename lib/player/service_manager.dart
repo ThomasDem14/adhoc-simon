@@ -22,12 +22,10 @@ abstract class ServiceManager {
     connectivity = connectivityController.stream;
   }
 
-  void enable();
-
   /// ************  Main page actions ************/
 
-  // Notify others the updated name.
-  void setName(String name);
+  // Enable the manager and sets its name (definite).
+  void enable(String name);
 
   // Notify others that you leave the room.
   void leaveGroup();

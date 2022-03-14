@@ -4,7 +4,6 @@ enum MessageType {
   firebaseConnection,
   startGame,
   leaveGroup,
-  changeName,
   sendLevelChange,
   sendColorTapped,
 }
@@ -20,8 +19,6 @@ MessageType getMessageTypeFromString(String typeString) {
     return MessageType.startGame;
   else if (typeString == "leaveGroup")
     return MessageType.leaveGroup;
-  else if (typeString == "changeName")
-    return MessageType.changeName;
   else if (typeString == "sendLevelChange")
     return MessageType.sendLevelChange;
   else if (typeString == "sendColorTapped")

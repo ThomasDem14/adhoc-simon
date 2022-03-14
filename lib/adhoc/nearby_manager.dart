@@ -14,21 +14,14 @@ class NearbyManager extends ServiceManager {
 
   ///******** ServiceManager functions ********/
 
-  void enable() {
-    _manager.enable();
-    _manager.eventStream.listen(_processAdHocEvent);
-  }
-
-  void setName(String name) {
-    if (!this.enabled) return;
-
+  void enable(String name) {
     this.name = name;
+    _manager.enable(this.name);
+    _manager.eventStream.listen(_processAdHocEvent);
 
-    var message = HashMap<String, dynamic>();
-    message.putIfAbsent('type', () => MessageType.changeName.name);
-    message.putIfAbsent('name', () => name);
-    message.putIfAbsent('id', () => id);
-    _manager.broadcast(message);
+    print('[NearbyManager] Enabled');
+    this.enabled = true;
+    connectivityController.add(true);
   }
 
   void startGame(int seed, List<ConnectedDevice> players) {
@@ -132,6 +125,6 @@ class NearbyManager extends ServiceManager {
   void connectPeer(String peer) {
     if (!this.enabled) return;
 
-    _manager.connect(peer, name);
+    _manager.connect(peer);
   }
 }

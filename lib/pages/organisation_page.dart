@@ -33,8 +33,7 @@ class _OrganisationPage extends State<OrganisationPage> {
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => ChangeNotifierProvider(
             create: (context) => SimonGame(
-                Provider.of<PlayerManager>(context, listen: false)
-                    .getNbPlayers(),
+                Provider.of<PlayerManager>(context, listen: false).nbPlayers,
                 seed),
             child: GamePage(),
           ),

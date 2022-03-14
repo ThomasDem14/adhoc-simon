@@ -14,7 +14,9 @@ class AdhocManager extends ServiceManager {
 
   ///******** ServiceManager functions ********/
 
-  void enable() {
+  void enable(String name) {
+    this.name = name;
+
     _manager.enable();
     _manager.eventStream.listen(_processAdHocEvent);
     _manager.open = true;
@@ -34,18 +36,6 @@ class AdhocManager extends ServiceManager {
         connectivityController.add(false);
       }
     }
-  }
-
-  void setName(String name) {
-    if (!this.enabled) return;
-
-    this.name = name;
-
-    var message = HashMap<String, dynamic>();
-    message.putIfAbsent('type', () => MessageType.changeName.name);
-    message.putIfAbsent('name', () => name);
-    message.putIfAbsent('id', () => id);
-    _manager.broadcast(message);
   }
 
   void startGame(int seed, List<ConnectedDevice> players) {

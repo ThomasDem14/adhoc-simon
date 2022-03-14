@@ -1,6 +1,8 @@
 enum MessageType {
   adhocDiscovered,
+  adhocDiscoveredEnded,
   adhocConnection,
+  adhocConnectionEnded,
   firebaseConnection,
   startGame,
   leaveGroup,
@@ -13,6 +15,10 @@ MessageType getMessageTypeFromString(String typeString) {
     return MessageType.adhocDiscovered;
   else if (typeString == "adhocConnection")
     return MessageType.adhocConnection;
+  else if (typeString == "adhocConnectionEnded")
+    return MessageType.adhocConnectionEnded;
+  else if (typeString == "adhocDiscoveredEnded")
+    return MessageType.adhocDiscoveredEnded;
   else if (typeString == "firebaseConnection")
     return MessageType.firebaseConnection;
   else if (typeString == "startGame")

@@ -87,6 +87,7 @@ class NearbyManager extends ServiceManager {
         break;
       case NearbyMessageType.onEndpointLost:
         print("----- onEndpointLost: ${event.endpointId}");
+        _sendMessageStream(MessageType.adhocDiscoveredEnded, event.endpointId);
         break;
       case NearbyMessageType.onPayloadReceived:
         print("----- onPayloadReceived");
@@ -102,6 +103,7 @@ class NearbyManager extends ServiceManager {
         break;
       case NearbyMessageType.onConnectionEnded:
         print("----- onConnectionClosed with device ${event.endpointId}");
+        _sendMessageStream(MessageType.adhocConnectionEnded, event.endpointId);
         break;
       default:
     }

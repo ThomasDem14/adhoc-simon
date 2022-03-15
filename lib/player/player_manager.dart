@@ -158,10 +158,14 @@ class PlayerManager extends ChangeNotifier {
 
       case MessageType.adhocConnection:
         var endpoint = data['data'] as String;
-        var device =
-            _discovered.firstWhere((element) => element.id == endpoint);
-        _discovered.remove(device);
-        _peers.add(device);
+        var device = _discovered.firstWhere((element) => element.id == endpoint,
+            orElse: null);
+        if (device != null) {
+          _discovered.remove(device);
+          _peers.add(device);
+        } else {
+          _peers.add(ConnectedDevice(endpoint, true, endpoint));
+        }
         notifyListeners();
         break;
 

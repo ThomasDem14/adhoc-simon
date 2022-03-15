@@ -33,7 +33,7 @@ class NearbyManager extends ServiceManager {
     message.putIfAbsent('id', () => id);
     message.putIfAbsent('players', () => jsonEncode(players));
     message.putIfAbsent('seed', () => seed);
-    _manager.broadcast(_toByteArray(message));
+    _manager.broadcast(jsonEncode(message));
   }
 
   void leaveGroup() {
@@ -43,7 +43,7 @@ class NearbyManager extends ServiceManager {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.leaveGroup.name);
     message.putIfAbsent('id', () => id);
-    _manager.broadcast(_toByteArray(message));
+    _manager.broadcast(jsonEncode(message));
 
     // Then disconnect
     _manager.disconnectAll();
@@ -56,7 +56,7 @@ class NearbyManager extends ServiceManager {
     message.putIfAbsent('type', () => MessageType.sendLevelChange.name);
     message.putIfAbsent('restart', () => restart);
     message.putIfAbsent('id', () => id);
-    _manager.broadcast(_toByteArray(message));
+    _manager.broadcast(jsonEncode(message));
   }
 
   void sendColorTapped(GameColors color) {
@@ -66,7 +66,7 @@ class NearbyManager extends ServiceManager {
     message.putIfAbsent('type', () => MessageType.sendColorTapped.name);
     message.putIfAbsent('color', () => color.name);
     message.putIfAbsent('id', () => id);
-    _manager.broadcast(_toByteArray(message));
+    _manager.broadcast(jsonEncode(message));
   }
 
   ///******** Specific to AdhocManager ********/
@@ -95,7 +95,6 @@ class NearbyManager extends ServiceManager {
         break;
       case NearbyMessageType.onPayloadTransferred:
         print("----- onPayloadTransferred");
-        _processMsgReceived(event);
         break;
       case NearbyMessageType.onConnectionAccepted:
         print("----- onConnection with device ${event.endpointId}");
@@ -119,11 +118,8 @@ class NearbyManager extends ServiceManager {
   }
 
   void _processMsgReceived(NearbyMessage message) {
-    print(message.payload.toString());
-  }
-
-  Uint8List _toByteArray(HashMap<String, dynamic> data) {
-    return Uint8List.fromList(data.toString().codeUnits);
+    print(message.payload);
+    streamController.add(jsonDecode(message.payload) as Map);
   }
 
   // Start the adhoc discover process

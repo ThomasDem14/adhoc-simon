@@ -49,6 +49,16 @@ class FirebaseManager extends ServiceManager {
     });
   }
 
+  void transferMessage(Map data) {
+    if (!this.enabled) return;
+
+    // Remove the peers entry because it is a Firebase message.
+    data.remove("peers");
+    // Override with your id.
+    data['id'] = this.id;
+    _reference.push().set(data);
+  }
+
   void leaveGroup() async {
     if (!this.enabled) return;
 
@@ -86,7 +96,7 @@ class FirebaseManager extends ServiceManager {
       "type": MessageType.startGame.name,
       "id": id,
       "seed": seed,
-      "players": jsonEncode(players),
+      "peers": jsonEncode(players),
     });
   }
 

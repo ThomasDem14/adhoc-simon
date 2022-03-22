@@ -159,7 +159,7 @@ class PlayerManager extends ChangeNotifier {
       case MessageType.adhocConnection:
         var endpoint = data['data'] as String;
         var device = _discovered.firstWhere((element) => element.id == endpoint,
-            orElse: null);
+            orElse: () => null);
         if (device != null) {
           _discovered.remove(device);
           _peers.add(device);
@@ -186,7 +186,7 @@ class PlayerManager extends ChangeNotifier {
 
       case MessageType.startGame:
         var seed = data['seed'] as int;
-        var json = jsonDecode(data['players'] as String) as List;
+        var json = jsonDecode(data['peers'] as String) as List;
         _peers = json.map((p) => ConnectedDevice.fromJson(p)).toList();
         _startGameStreamController.add(seed);
         break;
@@ -199,13 +199,28 @@ class PlayerManager extends ChangeNotifier {
       case MessageType.sendColorTapped:
         var color = data['color'] as String;
         _colorStreamController.add(getGameColorsFromString(color));
+        _transferMessage(data);
         break;
 
       case MessageType.sendLevelChange:
         var restart = data['restart'] as bool;
         _levelGameStreamController.add(restart);
+        _transferMessage(data);
         break;
     }
+  }
+
+  void _transferMessage(Map data) {
+    if (_isMessageFromFirebase(data)) {
+      _adhocManager.transferMessage(data);
+    } else {
+      _firebaseManager.transferMessage(data);
+      _adhocManager.transferMessage(data);
+    }
+  }
+
+  bool _isMessageFromFirebase(Map msg) {
+    return msg["peers"] == null;
   }
 
   // Getters

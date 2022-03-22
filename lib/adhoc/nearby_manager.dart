@@ -1,6 +1,5 @@
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
@@ -10,6 +9,8 @@ import 'package:nearby_plugin/nearby_plugin.dart';
 
 class NearbyManager extends ServiceManager {
   final TransferManager _manager = TransferManager();
+
+  List<ConnectedDevice> _peers = List.empty(growable: true);
 
   NearbyManager(id) : super(id);
 
@@ -25,14 +26,41 @@ class NearbyManager extends ServiceManager {
     connectivityController.add(true);
   }
 
+  void transferMessage(Map data) {
+    if (!this.enabled) return;
+
+    // If there is already a set of peers in the message,
+    if (data['peers'] != null) {
+      // get list of peers..
+      var json = jsonDecode(data['peers'] as String) as List;
+      var peersFromMsg = json.map((p) => ConnectedDevice.fromJson(p)).toList();
+      var totalPeers = List<ConnectedDevice>.from(peersFromMsg);
+      // .. and add yours.
+      for (ConnectedDevice peer in _peers) {
+        if (totalPeers.firstWhere((element) => element.id == peer.id,
+                orElse: () => null) ==
+            null) {
+          totalPeers.add(peer);
+        }
+      }
+      data['peers'] = jsonEncode(totalPeers);
+      _manager.broadcastExcept(
+          jsonEncode(data), peersFromMsg.map((e) => e.id).toList());
+    } else {
+      // Else, add your peers in the message and broadcast it.
+      data.putIfAbsent("peers", () => jsonEncode(_peers));
+      _manager.broadcast(jsonEncode(data));
+    }
+  }
+
   void startGame(int seed, List<ConnectedDevice> players) {
     if (!this.enabled) return;
 
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.startGame.name);
     message.putIfAbsent('id', () => id);
-    message.putIfAbsent('players', () => jsonEncode(players));
     message.putIfAbsent('seed', () => seed);
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
   }
 
@@ -43,6 +71,7 @@ class NearbyManager extends ServiceManager {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.leaveGroup.name);
     message.putIfAbsent('id', () => id);
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
 
     // Then disconnect
@@ -56,6 +85,7 @@ class NearbyManager extends ServiceManager {
     message.putIfAbsent('type', () => MessageType.sendLevelChange.name);
     message.putIfAbsent('restart', () => restart);
     message.putIfAbsent('id', () => id);
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
   }
 
@@ -66,6 +96,7 @@ class NearbyManager extends ServiceManager {
     message.putIfAbsent('type', () => MessageType.sendColorTapped.name);
     message.putIfAbsent('color', () => color.name);
     message.putIfAbsent('id', () => id);
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
   }
 
@@ -98,10 +129,12 @@ class NearbyManager extends ServiceManager {
         break;
       case NearbyMessageType.onConnectionAccepted:
         print("----- onConnection with device ${event.endpointId}");
+        _peers.add(ConnectedDevice(event.endpointId, true, event.endpoint));
         _sendMessageStream(MessageType.adhocConnection, event.endpointId);
         break;
       case NearbyMessageType.onConnectionEnded:
         print("----- onConnectionClosed with device ${event.endpointId}");
+        _peers.removeWhere((element) => element.id == event.endpointId);
         _sendMessageStream(MessageType.adhocConnectionEnded, event.endpointId);
         break;
       default:
@@ -113,7 +146,6 @@ class NearbyManager extends ServiceManager {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => type.name);
     message.putIfAbsent('data', () => data);
-    message.putIfAbsent('id', () => id);
     streamController.add(message);
   }
 

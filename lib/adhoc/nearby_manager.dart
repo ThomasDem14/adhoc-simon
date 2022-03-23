@@ -18,12 +18,19 @@ class NearbyManager extends ServiceManager {
 
   void enable(String name) {
     this.name = name;
-    _manager.enable(this.name);
-    _manager.eventStream.listen(_processAdHocEvent);
 
-    print('[NearbyManager] Enabled');
-    this.enabled = true;
-    connectivityController.add(true);
+    _manager.enable(this.name).then((enabled) {
+      if (enabled) {
+        _manager.eventStream.listen(_processAdHocEvent);
+        print('[NearbyManager] Enabled');
+        this.enabled = true;
+        connectivityController.add(true);
+      } else {
+        print('[NearbyManager] Disabled');
+        this.enabled = false;
+        connectivityController.add(false);
+      }
+    });
   }
 
   void transferMessage(Map data) {

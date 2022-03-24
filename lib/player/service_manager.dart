@@ -27,6 +27,9 @@ abstract class ServiceManager {
   /// Enable the manager and sets its name (definite).
   void enable(String name);
 
+  /// Cleanly dispose of the manager resources.
+  void dispose();
+
   /// Transfer a message to all its peers.
   void transferMessage(Map data);
 

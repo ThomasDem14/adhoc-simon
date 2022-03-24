@@ -26,6 +26,7 @@ class _OrganisationPage extends State<OrganisationPage> {
   @override
   void initState() {
     super.initState();
+
     _subscription = Provider.of<PlayerManager>(context, listen: false)
         .startGameStream
         .listen((seed) {
@@ -47,6 +48,7 @@ class _OrganisationPage extends State<OrganisationPage> {
   @override
   void dispose() {
     _subscription?.cancel();
+    Provider.of<PlayerManager>(context, listen: false).dispose();
     super.dispose();
   }
 

@@ -33,6 +33,10 @@ class NearbyManager extends ServiceManager {
     });
   }
 
+  void dispose() {
+    _manager.disable();
+  }
+
   void transferMessage(Map data) {
     if (!this.enabled) return;
 

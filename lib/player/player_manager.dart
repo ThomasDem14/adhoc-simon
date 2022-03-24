@@ -86,6 +86,14 @@ class PlayerManager extends ChangeNotifier {
     _firebaseManager.enable(name);
   }
 
+  void dispose() {
+    _adhocManagerSubscription.cancel();
+    _firebaseManagerSubscription.cancel();
+    _adhocManager.dispose();
+    _firebaseManager.dispose();
+    super.dispose();
+  }
+
   void startGame(int seed) {
     // Add yourself in the list of peers
     _peers.add(ConnectedDevice(

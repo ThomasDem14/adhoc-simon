@@ -5,36 +5,43 @@ import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_gaming/player/service_manager.dart';
-import 'package:nearby_plugin/nearby_plugin.dart';
+import 'package:adhoc_plugin/adhoc_plugin.dart';
 
-class NearbyManager extends ServiceManager {
-  final TransferManager _manager = TransferManager();
+class AdhocManager extends ServiceManager {
+  final TransferManager _manager = TransferManager(true);
 
   List<ConnectedDevice> _peers = List.empty(growable: true);
 
-  NearbyManager(id) : super(id);
+  AdhocManager(id) : super(id);
 
   ///******** ServiceManager functions ********/
 
   void enable(String name) {
     this.name = name;
 
-    _manager.enable(this.name).then((enabled) {
-      if (enabled) {
-        _manager.eventStream.listen(_processAdHocEvent);
-        print('[NearbyManager] Enabled');
+    _manager.enable();
+    _manager.eventStream.listen(_processAdHocEvent);
+    _manager.open = true;
+
+    if (_manager.isBluetoothEnabled() || _manager.isWifiEnabled()) {
+      // If it was disabled, enable.
+      if (!this.enabled) {
+        print('[AdhocManager] Enabled');
         this.enabled = true;
         connectivityController.add(true);
-      } else {
-        print('[NearbyManager] Disabled');
+      }
+    } else {
+      // If it was enabled, disable.
+      if (this.enabled) {
+        print('[AdhocManager] Disabled');
         this.enabled = false;
         connectivityController.add(false);
       }
-    });
+    }
   }
 
   void dispose() {
-    _manager.disable();
+    _manager.disconnectAll();
   }
 
   void transferMessage(Map data) {
@@ -55,7 +62,7 @@ class NearbyManager extends ServiceManager {
         }
       }
       data['peers'] = jsonEncode(totalPeers);
-      _manager.broadcastExcept(
+      _manager.broadcastExceptList(
           jsonEncode(data), peersFromMsg.map((e) => e.id).toList());
     } else {
       // Else, add your peers in the message and broadcast it.
@@ -70,9 +77,9 @@ class NearbyManager extends ServiceManager {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.startGame.name);
     message.putIfAbsent('id', () => id);
+    message.putIfAbsent('players', () => jsonEncode(players));
     message.putIfAbsent('seed', () => seed);
-    message.putIfAbsent('peers', () => jsonEncode(_peers));
-    _manager.broadcast(jsonEncode(message));
+    _manager.broadcast(message);
   }
 
   void leaveGroup() {
@@ -82,8 +89,7 @@ class NearbyManager extends ServiceManager {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.leaveGroup.name);
     message.putIfAbsent('id', () => id);
-    message.putIfAbsent('peers', () => jsonEncode(_peers));
-    _manager.broadcast(jsonEncode(message));
+    _manager.broadcast(message);
 
     // Then disconnect
     _manager.disconnectAll();
@@ -96,8 +102,7 @@ class NearbyManager extends ServiceManager {
     message.putIfAbsent('type', () => MessageType.sendLevelChange.name);
     message.putIfAbsent('restart', () => restart);
     message.putIfAbsent('id', () => id);
-    message.putIfAbsent('peers', () => jsonEncode(_peers));
-    _manager.broadcast(jsonEncode(message));
+    _manager.broadcast(message);
   }
 
   void sendColorTapped(GameColors color) {
@@ -107,46 +112,53 @@ class NearbyManager extends ServiceManager {
     message.putIfAbsent('type', () => MessageType.sendColorTapped.name);
     message.putIfAbsent('color', () => color.name);
     message.putIfAbsent('id', () => id);
-    message.putIfAbsent('peers', () => jsonEncode(_peers));
-    _manager.broadcast(jsonEncode(message));
+    _manager.broadcast(message);
   }
 
   ///******** Specific to AdhocManager ********/
 
   /// Process messages received
-  void _processAdHocEvent(NearbyMessage event) {
+  void _processAdHocEvent(Event event) {
     switch (event.type) {
-      case NearbyMessageType.onDiscoveryStarted:
+      case AdHocType.onDiscoveryStarted:
         print("----- onDiscoveryStarted");
         break;
-      case NearbyMessageType.onEndpointDiscovered:
-        print("----- onEndpointDiscovered: ${event.endpoint}");
-        _sendMessageStream(
-            MessageType.adhocDiscovered, [event.endpoint, event.endpointId]);
+      case AdHocType.onDeviceDiscovered:
+        print("----- onDeviceDiscovered");
+        _sendMessageStream(MessageType.adhocDiscovered,
+            [event.device.name, event.device.label]);
         break;
-      case NearbyMessageType.onDiscoveryEnded:
-        print("----- onDiscoveryEnded");
+      case AdHocType.onDiscoveryCompleted:
+        print("----- onDiscoveryCompleted");
         break;
-      case NearbyMessageType.onEndpointLost:
-        print("----- onEndpointLost: ${event.endpointId}");
-        _sendMessageStream(MessageType.adhocDiscoveredEnded, event.endpointId);
-        break;
-      case NearbyMessageType.onPayloadReceived:
-        print("----- onPayloadReceived");
+      case AdHocType.onDataReceived:
+        print("----- onDataReceived");
         _processMsgReceived(event);
         break;
-      case NearbyMessageType.onPayloadTransferred:
-        print("----- onPayloadTransferred");
+      case AdHocType.onForwardData:
+        print("----- onForwardData");
+        _processMsgReceived(event);
         break;
-      case NearbyMessageType.onConnectionAccepted:
-        print("----- onConnection with device ${event.endpointId}");
-        _peers.add(ConnectedDevice(event.endpointId, true, event.endpoint));
-        _sendMessageStream(MessageType.adhocConnection, event.endpointId);
+      case AdHocType.onConnection:
+        print("----- onConnection with device ${event.device.name}");
+        _peers
+            .add(ConnectedDevice(event.device.label, true, event.device.name));
+        _sendMessageStream(MessageType.adhocConnection, event.device.label);
         break;
-      case NearbyMessageType.onConnectionEnded:
-        print("----- onConnectionClosed with device ${event.endpointId}");
-        _peers.removeWhere((element) => element.id == event.endpointId);
-        _sendMessageStream(MessageType.adhocConnectionEnded, event.endpointId);
+      case AdHocType.onConnectionClosed:
+        print("----- onConnectionClosed with device ${event.device.name}");
+        _peers.removeWhere((element) => element.id == event.device.label);
+        _sendMessageStream(
+            MessageType.adhocConnectionEnded, event.device.label);
+        break;
+      case AdHocType.onInternalException:
+        print("----- onInternalException");
+        break;
+      case AdHocType.onGroupInfo:
+        print("----- onGroupInfo");
+        break;
+      case AdHocType.onGroupDataReceived:
+        print("----- onGroupDataReceived");
         break;
       default:
     }
@@ -157,25 +169,26 @@ class NearbyManager extends ServiceManager {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => type.name);
     message.putIfAbsent('data', () => data);
+    message.putIfAbsent('id', () => id);
     streamController.add(message);
   }
 
-  void _processMsgReceived(NearbyMessage message) {
-    print(message.payload);
-    streamController.add(jsonDecode(message.payload) as Map);
+  void _processMsgReceived(Event message) {
+    print(message.data);
+    streamController.add(jsonDecode(message.data) as Map);
   }
 
   /// Start the adhoc discover process
   void startDiscovery() {
     if (!this.enabled) return;
 
-    _manager.discovery(3600);
+    _manager.discovery();
   }
 
   /// Establish connection to the peer
-  void connectPeer(String peer) {
+  void connectPeer(AdHocDevice peer) async {
     if (!this.enabled) return;
 
-    _manager.connect(peer);
+    await _manager.connect(peer);
   }
 }

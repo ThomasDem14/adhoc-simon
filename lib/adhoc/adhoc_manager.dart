@@ -10,7 +10,7 @@ import 'package:adhoc_plugin/adhoc_plugin.dart';
 class AdhocManager extends ServiceManager {
   final TransferManager _manager = TransferManager(true);
 
-  List<ConnectedDevice> _peers = List.empty(growable: true);
+  List<AdHocDevice> _peers = List.empty(growable: true);
 
   AdhocManager(id) : super(id);
 
@@ -54,11 +54,11 @@ class AdhocManager extends ServiceManager {
       var peersFromMsg = json.map((p) => ConnectedDevice.fromJson(p)).toList();
       var totalPeers = List<ConnectedDevice>.from(peersFromMsg);
       // .. and add yours.
-      for (ConnectedDevice peer in _peers) {
-        if (totalPeers.firstWhere((element) => element.id == peer.id,
+      for (AdHocDevice peer in _peers) {
+        if (totalPeers.firstWhere((element) => element.id == peer.label,
                 orElse: () => null) ==
             null) {
-          totalPeers.add(peer);
+          totalPeers.add(ConnectedDevice(peer.label, true, peer.name));
         }
       }
       data['peers'] = jsonEncode(totalPeers);
@@ -141,13 +141,12 @@ class AdhocManager extends ServiceManager {
         break;
       case AdHocType.onConnection:
         print("----- onConnection with device ${event.device.name}");
-        _peers
-            .add(ConnectedDevice(event.device.label, true, event.device.name));
+        _peers.add(event.device);
         _sendMessageStream(MessageType.adhocConnection, event.device.label);
         break;
       case AdHocType.onConnectionClosed:
         print("----- onConnectionClosed with device ${event.device.name}");
-        _peers.removeWhere((element) => element.id == event.device.label);
+        _peers.removeWhere((device) => device.label == event.device.label);
         _sendMessageStream(
             MessageType.adhocConnectionEnded, event.device.label);
         break;
@@ -186,9 +185,9 @@ class AdhocManager extends ServiceManager {
   }
 
   /// Establish connection to the peer
-  void connectPeer(AdHocDevice peer) async {
+  void connectPeer(String peer) async {
     if (!this.enabled) return;
 
-    await _manager.connect(peer);
+    await _manager.connect(_peers.firstWhere((device) => device.label == peer));
   }
 }

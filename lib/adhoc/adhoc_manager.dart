@@ -10,7 +10,8 @@ import 'package:adhoc_plugin/adhoc_plugin.dart';
 class AdhocManager extends ServiceManager {
   final TransferManager _manager = TransferManager(true);
 
-  List<AdHocDevice> _peers = List.empty(growable: true);
+  List<ConnectedDevice> _peers = List.empty(growable: true);
+  List<AdHocDevice> _discovered = List.empty(growable: true);
 
   AdhocManager(id) : super(id);
 
@@ -54,11 +55,11 @@ class AdhocManager extends ServiceManager {
       var peersFromMsg = json.map((p) => ConnectedDevice.fromJson(p)).toList();
       var totalPeers = List<ConnectedDevice>.from(peersFromMsg);
       // .. and add yours.
-      for (AdHocDevice peer in _peers) {
-        if (totalPeers.firstWhere((element) => element.id == peer.label,
+      for (ConnectedDevice peer in _peers) {
+        if (totalPeers.firstWhere((element) => element.id == peer.id,
                 orElse: () => null) ==
             null) {
-          totalPeers.add(ConnectedDevice(peer.label, true, peer.name));
+          totalPeers.add(peer);
         }
       }
       data['peers'] = jsonEncode(totalPeers);
@@ -77,9 +78,9 @@ class AdhocManager extends ServiceManager {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.startGame.name);
     message.putIfAbsent('id', () => id);
-    message.putIfAbsent('players', () => jsonEncode(players));
+    message.putIfAbsent('peers', () => jsonEncode(players));
     message.putIfAbsent('seed', () => seed);
-    _manager.broadcast(message);
+    _manager.broadcast(jsonEncode(message));
   }
 
   void leaveGroup() {
@@ -89,7 +90,8 @@ class AdhocManager extends ServiceManager {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.leaveGroup.name);
     message.putIfAbsent('id', () => id);
-    _manager.broadcast(message);
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
+    _manager.broadcast(jsonEncode(message));
 
     // Then disconnect
     _manager.disconnectAll();
@@ -102,7 +104,8 @@ class AdhocManager extends ServiceManager {
     message.putIfAbsent('type', () => MessageType.sendLevelChange.name);
     message.putIfAbsent('restart', () => restart);
     message.putIfAbsent('id', () => id);
-    _manager.broadcast(message);
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
+    _manager.broadcast(jsonEncode(message));
   }
 
   void sendColorTapped(GameColors color) {
@@ -112,7 +115,8 @@ class AdhocManager extends ServiceManager {
     message.putIfAbsent('type', () => MessageType.sendColorTapped.name);
     message.putIfAbsent('color', () => color.name);
     message.putIfAbsent('id', () => id);
-    _manager.broadcast(message);
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
+    _manager.broadcast(jsonEncode(message));
   }
 
   ///******** Specific to AdhocManager ********/
@@ -125,6 +129,7 @@ class AdhocManager extends ServiceManager {
         break;
       case AdHocType.onDeviceDiscovered:
         print("----- onDeviceDiscovered");
+        _discovered.add(event.device);
         _sendMessageStream(MessageType.adhocDiscovered,
             [event.device.name, event.device.label]);
         break;
@@ -141,12 +146,14 @@ class AdhocManager extends ServiceManager {
         break;
       case AdHocType.onConnection:
         print("----- onConnection with device ${event.device.name}");
-        _peers.add(event.device);
+        _discovered.removeWhere((device) => device.label == event.device.label);
+        _peers
+            .add(ConnectedDevice(event.device.label, true, event.device.name));
         _sendMessageStream(MessageType.adhocConnection, event.device.label);
         break;
       case AdHocType.onConnectionClosed:
         print("----- onConnectionClosed with device ${event.device.name}");
-        _peers.removeWhere((device) => device.label == event.device.label);
+        _peers.removeWhere((device) => device.id == event.device.label);
         _sendMessageStream(
             MessageType.adhocConnectionEnded, event.device.label);
         break;
@@ -168,7 +175,6 @@ class AdhocManager extends ServiceManager {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => type.name);
     message.putIfAbsent('data', () => data);
-    message.putIfAbsent('id', () => id);
     streamController.add(message);
   }
 
@@ -188,6 +194,7 @@ class AdhocManager extends ServiceManager {
   void connectPeer(String peer) async {
     if (!this.enabled) return;
 
-    await _manager.connect(_peers.firstWhere((device) => device.label == peer));
+    await _manager
+        .connect(_discovered.firstWhere((device) => device.label == peer));
   }
 }

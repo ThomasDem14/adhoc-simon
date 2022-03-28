@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:adhoc_gaming/adhoc/nearby_manager.dart';
+import 'package:adhoc_gaming/adhoc/adhoc_manager.dart';
 import 'package:adhoc_gaming/firebase/firebase_manager.dart';
 import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
@@ -15,6 +16,7 @@ class PlayerManager extends ChangeNotifier {
   String _name;
   bool _enabled = false;
 
+  //AdhocManager _adhocManager;
   NearbyManager _adhocManager;
   StreamSubscription _adhocManagerSubscription;
   FirebaseManager _firebaseManager;
@@ -41,6 +43,7 @@ class PlayerManager extends ChangeNotifier {
   PlayerManager() {
     // Initialize the unique id to represent yourself
     _id = _uuid.v4();
+    //_adhocManager = AdhocManager(_id);
     _adhocManager = NearbyManager(_id);
     _firebaseManager = FirebaseManager(_id);
 

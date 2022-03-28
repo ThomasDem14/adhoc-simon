@@ -31,10 +31,12 @@ class SimonGame extends ChangeNotifier {
     _random = new Random(_seed);
   }
 
+  /// Returns a random color from the enum list.
   GameColors _randomColor() {
     return GameColors.values[_random.nextInt(GameColors.values.length - 1)];
   }
 
+  /// Reset the default settings.
   void restart() {
     _level = 0;
     _turnSequence = 0;
@@ -52,6 +54,7 @@ class SimonGame extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Add new colors in the sequence and play it after to start the level.
   void startLevel() {
     // if duration is active => return
     if (_isPlayingSequence || _isWaitingForInput) return;
@@ -60,7 +63,10 @@ class SimonGame extends ChangeNotifier {
 
     // Add 1 new color for each player
     _nbColors += _nbPlayers;
-    for (var i = 0; i < _nbPlayers; i++) _currentSequence.add(_randomColor());
+    for (var i = 0; i < _nbPlayers; i++) {
+      _currentSequence.add(_randomColor());
+      _currentSequence.add(GameColors.Default);
+    }
 
     // Increment level
     _level++;
@@ -70,13 +76,16 @@ class SimonGame extends ChangeNotifier {
     _playSequence();
   }
 
+  /// Defines the process to play the color sequence.
   void _playSequence() {
     _isPlayingSequence = true;
     for (var i = 0; i <= _nbColors; i++) {
-      Future.delayed(Duration(seconds: i), () {
+      // 0.9 Second of the color
+      Future.delayed(Duration(milliseconds: i * 1000), () {
         // Set current turn
-        _turnSequence = i;
+        _turnSequence = 2 * i;
 
+        // End of the sequence
         if (i == _nbColors) {
           _isPlayingSequence = false;
           _isWaitingForInput = true;
@@ -85,28 +94,36 @@ class SimonGame extends ChangeNotifier {
 
         notifyListeners();
       });
+      // 0.1 Second of black
+      Future.delayed(Duration(milliseconds: i * 1000 + 700), () {
+        _turnSequence = 2 * i + 1;
+        notifyListeners();
+      });
     }
   }
 
+  /// Returns the color that should be displayed at the current time.
   GameColors getCurrentColor() {
-    if (_isPlayingSequence)
-      return _getColor(_turnSequence);
+    if (_isPlayingSequence) return _getColor(_turnSequence);
 
     return _lastInput;
   }
 
+  /// Returns the color in the sequence at the specific turn.
   GameColors _getColor(int turn) {
-    if (turn >= _nbColors) return GameColors.Default;
+    if (turn >= 2 * _nbColors) return GameColors.Default;
 
     return _currentSequence.elementAt(turn);
   }
 
+  /// Check if the received input matches the sequence.
   void processInput(GameColors color) {
     _lastInput = color;
 
-    if (_getColor(_turnWaiting) == color) {
+    if (_getColor(2 * _turnWaiting) == color) {
       _turnWaiting++;
 
+      // End of the sequence
       if (_turnWaiting >= _nbColors) {
         _isWaitingForInput = false;
         _turnWaiting = 0;
@@ -116,6 +133,7 @@ class SimonGame extends ChangeNotifier {
       return;
     }
 
+    // Game over at the first fail
     _gameOver = true;
     _isWaitingForInput = false;
     notifyListeners();

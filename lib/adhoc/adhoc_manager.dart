@@ -131,7 +131,7 @@ class AdhocManager extends ServiceManager {
         print("----- onDeviceDiscovered");
         _discovered.add(event.device);
         _sendMessageStream(MessageType.adhocDiscovered,
-            [event.device.name, event.device.label]);
+            [event.device.name, _macFromAdhocDevice(event.device)]);
         break;
       case AdHocType.onDiscoveryCompleted:
         print("----- onDiscoveryCompleted");
@@ -146,10 +146,12 @@ class AdhocManager extends ServiceManager {
         break;
       case AdHocType.onConnection:
         print("----- onConnection with device ${event.device.name}");
-        _discovered.removeWhere((device) => device.label == event.device.label);
+        _discovered.removeWhere((device) =>
+            _macFromAdhocDevice(device) == _macFromAdhocDevice(event.device));
         _peers
             .add(ConnectedDevice(event.device.label, true, event.device.name));
-        _sendMessageStream(MessageType.adhocConnection, event.device.label);
+        _sendMessageStream(MessageType.adhocConnection,
+            [event.device.name, event.device.label]);
         break;
       case AdHocType.onConnectionClosed:
         print("----- onConnectionClosed with device ${event.device.name}");
@@ -194,7 +196,12 @@ class AdhocManager extends ServiceManager {
   void connectPeer(String peer) async {
     if (!this.enabled) return;
 
-    await _manager
-        .connect(_discovered.firstWhere((device) => device.label == peer));
+    await _manager.connect(_discovered
+        .firstWhere((device) => _macFromAdhocDevice(device) == peer));
+  }
+
+  /// Returns the mac address of the given AdHocDevice.
+  String _macFromAdhocDevice(AdHocDevice device) {
+    return device.mac.ble == '' ? device.mac.wifi : device.mac.ble;
   }
 }

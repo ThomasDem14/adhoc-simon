@@ -168,14 +168,15 @@ class PlayerManager extends ChangeNotifier {
         break;
 
       case MessageType.adhocConnection:
-        var endpoint = data['data'] as String;
-        var device = _discovered.firstWhere((element) => element.id == endpoint,
+        var endpoint = data['data'] as List<String>;
+        var device = _discovered.firstWhere(
+            (element) => element.name == endpoint[0],
             orElse: () => null);
         if (device != null) {
           _discovered.remove(device);
           _peers.add(device);
         } else {
-          _peers.add(ConnectedDevice(endpoint, true, endpoint));
+          _peers.add(ConnectedDevice(endpoint[1], true, endpoint[0]));
         }
         notifyListeners();
         break;
@@ -225,8 +226,8 @@ class PlayerManager extends ChangeNotifier {
     if (_isMessageFromFirebase(data)) {
       _adhocManager.transferMessage(data);
     } else {
-      _firebaseManager.transferMessage(data);
       _adhocManager.transferMessage(data);
+      _firebaseManager.transferMessage(data);
     }
   }
 

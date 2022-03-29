@@ -80,23 +80,24 @@ class SimonGame extends ChangeNotifier {
   void _playSequence() {
     _isPlayingSequence = true;
     for (var i = 0; i <= _nbColors; i++) {
-      // 0.9 Second of the color
+      // 0.7 Second of the color
       Future.delayed(Duration(milliseconds: i * 1000), () {
         // Set current turn
         _turnSequence = 2 * i;
+        notifyListeners();
+      });
+      // 0.3 Second of black
+      Future.delayed(Duration(milliseconds: i * 1000 + 700), () {
+        _turnSequence = 2 * i + 1;
 
         // End of the sequence
         if (i == _nbColors) {
           _isPlayingSequence = false;
           _isWaitingForInput = true;
           _turnWaiting = 0;
+          _turnSequence = 0;
         }
 
-        notifyListeners();
-      });
-      // 0.1 Second of black
-      Future.delayed(Duration(milliseconds: i * 1000 + 700), () {
-        _turnSequence = 2 * i + 1;
         notifyListeners();
       });
     }

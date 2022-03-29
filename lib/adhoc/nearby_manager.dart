@@ -141,7 +141,8 @@ class NearbyManager extends ServiceManager {
       case NearbyMessageType.onConnectionAccepted:
         print("----- onConnection with device ${event.endpointId}");
         _peers.add(ConnectedDevice(event.endpointId, true, event.endpoint));
-        _sendMessageStream(MessageType.adhocConnection, event.endpointId);
+        _sendMessageStream(
+            MessageType.adhocConnection, [event.endpoint, event.endpointId]);
         break;
       case NearbyMessageType.onConnectionEnded:
         print("----- onConnectionClosed with device ${event.endpointId}");

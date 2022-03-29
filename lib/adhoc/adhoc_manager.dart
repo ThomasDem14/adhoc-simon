@@ -63,6 +63,7 @@ class AdhocManager extends ManagerInterface {
         }
       }
       data['peers'] = jsonEncode(totalPeers);
+      // TODO: Label from plugin is different from own id from uuid
       _manager.broadcastExceptList(
           jsonEncode(data), peersFromMsg.map((e) => e.id).toList());
     } else {
@@ -196,6 +197,7 @@ class AdhocManager extends ManagerInterface {
   void connectPeer(String peer) async {
     if (!this.enabled) return;
 
+    // TODO: Check WiFi Direct connect
     await _manager.connect(_discovered
         .firstWhere((device) => _macFromAdhocDevice(device) == peer));
   }

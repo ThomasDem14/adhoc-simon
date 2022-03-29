@@ -48,6 +48,7 @@ class _OrganisationPage extends State<OrganisationPage> {
   @override
   void dispose() {
     _subscription?.cancel();
+    // TODO: To call onDestroy
     Provider.of<PlayerManager>(context, listen: false).dispose();
     super.dispose();
   }

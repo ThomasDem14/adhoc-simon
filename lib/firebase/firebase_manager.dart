@@ -119,6 +119,7 @@ class FirebaseManager extends ServiceManager {
     // Leave the current room.
     await _leaveProcess();
 
+    // TODO: Check if room exists (optional)
     _roomId = roomId;
     await _listen(roomId);
 

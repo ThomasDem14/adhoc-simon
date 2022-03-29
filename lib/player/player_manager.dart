@@ -106,6 +106,8 @@ class PlayerManager extends ChangeNotifier {
       _name,
     ));
 
+    // TODO: Discover all the players
+
     _adhocManager.startGame(seed, _peers);
     _firebaseManager.startGame(seed, _peers);
 
@@ -115,6 +117,8 @@ class PlayerManager extends ChangeNotifier {
   void leaveGroup() {
     _adhocManager.leaveGroup();
     _firebaseManager.leaveGroup();
+
+    // TODO: Handle a player leaving mid game
 
     _discovered = List.empty(growable: true);
     _peers = List.empty(growable: true);

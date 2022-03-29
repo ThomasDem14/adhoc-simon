@@ -141,8 +141,9 @@ class NearbyManager extends ManagerInterface {
       case NearbyMessageType.onConnectionAccepted:
         print("----- onConnection with device ${event.endpointId}");
         _peers.add(ConnectedDevice(event.endpointId, true, event.endpoint));
+        // TODO: Get event.endpoint name from other connection event
         _sendMessageStream(
-            MessageType.adhocConnection, [event.endpoint, event.endpointId]);
+            MessageType.adhocConnection, [event.endpointId, event.endpointId]);
         break;
       case NearbyMessageType.onConnectionEnded:
         print("----- onConnectionClosed with device ${event.endpointId}");

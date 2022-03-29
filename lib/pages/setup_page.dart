@@ -34,6 +34,7 @@ class _SetupPageState extends State<SetupPage> {
               controller: textController,
             ),
           ),
+          SizedBox(height: 5),
           // Toggle button for Adhoc/Nearby plugin
           ToggleButtons(
             children: [
@@ -48,6 +49,7 @@ class _SetupPageState extends State<SetupPage> {
               });
             },
           ),
+          SizedBox(height: 5),
           // Button start
           SizedBox(
             height: 60,

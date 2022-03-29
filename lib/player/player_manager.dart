@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:adhoc_gaming/adhoc/manager_interface.dart';
 import 'package:adhoc_gaming/adhoc/nearby_manager.dart';
 import 'package:adhoc_gaming/adhoc/adhoc_manager.dart';
 import 'package:adhoc_gaming/firebase/firebase_manager.dart';
@@ -16,8 +17,7 @@ class PlayerManager extends ChangeNotifier {
   String _name;
   bool _enabled = false;
 
-  //AdhocManager _adhocManager;
-  NearbyManager _adhocManager;
+  ManagerInterface _adhocManager;
   StreamSubscription _adhocManagerSubscription;
   FirebaseManager _firebaseManager;
   StreamSubscription _firebaseManagerSubscription;
@@ -40,11 +40,17 @@ class PlayerManager extends ChangeNotifier {
       StreamController<GameColors>.broadcast();
   Stream colorStream;
 
-  PlayerManager() {
+  /// plugin: 0 for adhoc_plugin & 1 for nearby_plugin
+  PlayerManager(String name, int plugin) {
     // Initialize the unique id to represent yourself
     _id = _uuid.v4();
-    //_adhocManager = AdhocManager(_id);
-    _adhocManager = NearbyManager(_id);
+    _name = name;
+
+    if (plugin == 0) {
+      _adhocManager = AdhocManager(_id);
+    } else {
+      _adhocManager = NearbyManager(_id);
+    }
     _firebaseManager = FirebaseManager(_id);
 
     // Set up the exposed streams
@@ -77,16 +83,11 @@ class PlayerManager extends ChangeNotifier {
       }
       notifyListeners();
     });
-  }
 
-  void enable(String name) {
-    if (_enabled) return;
-
-    _name = name;
-    _enabled = true;
     // Enable managers
     _adhocManager.enable(name);
     _firebaseManager.enable(name);
+    _enabled = true;
   }
 
   void dispose() {

@@ -54,46 +54,50 @@ class _OrganisationPage extends State<OrganisationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text('Simon Game'),
-      ),
-      body: PageView(
-        physics: Provider.of<PageSettings>(context).getScrollPhysics(),
-        scrollDirection: Axis.horizontal,
-        controller:
-            Provider.of<PageSettings>(context, listen: false).controller,
-        children: [
-          AdhocPage(),
-          MainPage(textController: nameController),
-          InternetPage(textController: roomController),
-        ],
-        onPageChanged: (i) => Provider.of<PageSettings>(context, listen: false)
-            .modifyIndex(i, false),
-      ),
-      bottomNavigationBar: SalomonBottomBar(
-        currentIndex: Provider.of<PageSettings>(context).getBottomIndex(),
-        onTap: (i) => Provider.of<PageSettings>(context, listen: false)
-            .modifyIndex(i, true),
-        items: [
-          SalomonBottomBarItem(
-            icon: const Icon(Icons.bluetooth),
-            title: const Text("Adhoc"),
-            selectedColor: const Color.fromRGBO(97, 192, 142, 1),
-          ),
-          SalomonBottomBarItem(
-            icon: const Icon(Icons.home),
-            title: const Text("Game"),
-            selectedColor: const Color.fromRGBO(71, 163, 179, 1),
-          ),
-          SalomonBottomBarItem(
-            icon: const Icon(Icons.wifi),
-            title: const Text("Internet"),
-            selectedColor: const Color.fromRGBO(92, 68, 134, 1),
-          ),
-        ],
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          centerTitle: true,
+          title: const Text('Simon Game'),
+        ),
+        body: PageView(
+          physics: Provider.of<PageSettings>(context).getScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          controller:
+              Provider.of<PageSettings>(context, listen: false).controller,
+          children: [
+            AdhocPage(),
+            MainPage(textController: nameController),
+            InternetPage(textController: roomController),
+          ],
+          onPageChanged: (i) =>
+              Provider.of<PageSettings>(context, listen: false)
+                  .modifyIndex(i, false),
+        ),
+        bottomNavigationBar: SalomonBottomBar(
+          currentIndex: Provider.of<PageSettings>(context).getBottomIndex(),
+          onTap: (i) => Provider.of<PageSettings>(context, listen: false)
+              .modifyIndex(i, true),
+          items: [
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.bluetooth),
+              title: const Text("Adhoc"),
+              selectedColor: const Color.fromRGBO(97, 192, 142, 1),
+            ),
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.home),
+              title: const Text("Game"),
+              selectedColor: const Color.fromRGBO(71, 163, 179, 1),
+            ),
+            SalomonBottomBarItem(
+              icon: const Icon(Icons.wifi),
+              title: const Text("Internet"),
+              selectedColor: const Color.fromRGBO(92, 68, 134, 1),
+            ),
+          ],
+        ),
       ),
     );
   }

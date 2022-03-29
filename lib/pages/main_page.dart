@@ -13,32 +13,6 @@ class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      // Input form for the name
-      Container(
-        margin: EdgeInsets.all(10.0),
-        child: TextField(
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: 'Enter your name',
-          ),
-          controller: textController,
-          enabled: !Provider.of<PlayerManager>(context).enabled,
-        ),
-      ),
-      // Button enable
-      SizedBox(
-        height: 60,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            minimumSize: Size(double.infinity, 0),
-            textStyle: TextStyle(color: Colors.white),
-            primary: Colors.blue,
-          ),
-          onPressed: () => Provider.of<PlayerManager>(context, listen: false)
-              .enable(textController.text),
-          child: const Text("Confirm name"),
-        ),
-      ),
       SizedBox(height: 5),
       // Button start game
       SizedBox(

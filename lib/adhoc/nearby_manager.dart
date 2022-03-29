@@ -1,13 +1,13 @@
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:adhoc_gaming/adhoc/manager_interface.dart';
 import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
-import 'package:adhoc_gaming/player/service_manager.dart';
 import 'package:nearby_plugin/nearby_plugin.dart';
 
-class NearbyManager extends ServiceManager {
+class NearbyManager extends ManagerInterface {
   final TransferManager _manager = TransferManager();
 
   List<ConnectedDevice> _peers = List.empty(growable: true);

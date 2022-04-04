@@ -69,6 +69,16 @@ class FirebaseManager extends ServiceManager {
     _reference.push().set(data);
   }
 
+  void notifyNewConnection(List<ConnectedDevice> devices) {
+    if (!this.enabled) return;
+
+    _reference.push().set({
+      "type": MessageType.indirectConnection.name,
+      "id": id,
+      "connections": jsonEncode(devices),
+    });
+  }
+
   void leaveGroup() async {
     if (!this.enabled) return;
 

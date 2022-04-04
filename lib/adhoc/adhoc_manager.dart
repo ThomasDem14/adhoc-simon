@@ -73,6 +73,17 @@ class AdhocManager extends ManagerInterface {
     }
   }
 
+  void notifyNewConnection(List<ConnectedDevice> devices) {
+    if (!this.enabled) return;
+
+    var message = HashMap<String, dynamic>();
+    message.putIfAbsent('type', () => MessageType.indirectConnection.name);
+    message.putIfAbsent('id', () => id);
+    message.putIfAbsent('connections', () => jsonEncode(devices));
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
+    _manager.broadcast(jsonEncode(message));
+  }
+
   void startGame(int seed, List<ConnectedDevice> players) {
     if (!this.enabled) return;
 
@@ -149,8 +160,8 @@ class AdhocManager extends ManagerInterface {
         print("----- onConnection with device ${event.device.name}");
         _discovered.removeWhere((device) =>
             _macFromAdhocDevice(device) == _macFromAdhocDevice(event.device));
-        _peers
-            .add(ConnectedDevice(event.device.label, true, event.device.name));
+        _peers.add(
+            ConnectedDevice(event.device.label, event.device.name, true, true));
         _sendMessageStream(MessageType.adhocConnection,
             [event.device.name, event.device.label]);
         break;

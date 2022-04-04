@@ -54,7 +54,9 @@ class NearbyManager extends ManagerInterface {
           totalPeers.add(peer);
         }
       }
+      // Update list of peers.
       data['peers'] = jsonEncode(totalPeers);
+      // Broadcast for all except the peers that already were in the message.
       _manager.broadcastExcept(
           jsonEncode(data), peersFromMsg.map((e) => e.id).toList());
     } else {
@@ -62,6 +64,17 @@ class NearbyManager extends ManagerInterface {
       data.putIfAbsent("peers", () => jsonEncode(_peers));
       _manager.broadcast(jsonEncode(data));
     }
+  }
+
+  void notifyNewConnection(List<ConnectedDevice> devices) {
+    if (!this.enabled) return;
+
+    var message = HashMap<String, dynamic>();
+    message.putIfAbsent('type', () => MessageType.indirectConnection.name);
+    message.putIfAbsent('id', () => id);
+    message.putIfAbsent('connections', () => jsonEncode(devices));
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
+    _manager.broadcast(jsonEncode(message));
   }
 
   void startGame(int seed, List<ConnectedDevice> players) {
@@ -140,7 +153,8 @@ class NearbyManager extends ManagerInterface {
         break;
       case NearbyMessageType.onConnectionAccepted:
         print("----- onConnection with device ${event.endpointId}");
-        _peers.add(ConnectedDevice(event.endpointId, true, event.endpoint));
+        _peers
+            .add(ConnectedDevice(event.endpointId, event.endpoint, true, true));
         _sendMessageStream(
             MessageType.adhocConnection, [event.endpoint, event.endpointId]);
         break;

@@ -1,25 +1,29 @@
 class ConnectedDevice {
   String id;
-  bool isAdhoc;
   String name;
+  bool isAdhoc;
+  bool isDirect;
 
-  ConnectedDevice(String id, bool isAdhoc, String name) {
+  ConnectedDevice(String id, String name, bool isAdhoc, bool isDirect) {
     this.id = id;
-    this.isAdhoc = isAdhoc;
     this.name = name;
+    this.isAdhoc = isAdhoc;
+    this.isDirect = isDirect;
   }
 
   factory ConnectedDevice.fromJson(Map<String, dynamic> json) {
     return ConnectedDevice(
       json['id'],
-      json['isAdhoc'],
       json['name'],
+      json['isAdhoc'],
+      json['isDirect'],
     );
   }
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'isAdhoc': isAdhoc,
         'name': name,
+        'isAdhoc': isAdhoc,
+        'isDirect': isDirect,
       };
 }

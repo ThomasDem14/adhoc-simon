@@ -102,11 +102,10 @@ class PlayerManager extends ChangeNotifier {
     // Add yourself in the list of peers
     _peers.add(ConnectedDevice(
       _id,
-      false,
       _name,
+      true,
+      true,
     ));
-
-    // TODO: Discover all the players
 
     _adhocManager.startGame(seed, _peers);
     _firebaseManager.startGame(seed, _peers);
@@ -161,9 +160,11 @@ class PlayerManager extends ChangeNotifier {
         var duplicate = _discovered.firstWhere(
             (element) => endpoint[1] == element.id,
             orElse: () => null);
-        if (duplicate == null)
-          _discovered.add(ConnectedDevice(endpoint[1], true, endpoint[0]));
-        notifyListeners();
+        if (duplicate == null) {
+          _discovered
+              .add(ConnectedDevice(endpoint[1], endpoint[0], true, true));
+          notifyListeners();
+        }
         break;
 
       case MessageType.adhocDiscoveredEnded:
@@ -176,14 +177,13 @@ class PlayerManager extends ChangeNotifier {
         var endpoint = data['data'] as List<String>;
         var device = _discovered.firstWhere(
             (element) => element.name == endpoint[0],
-            orElse: () => null);
-        if (device != null) {
-          _discovered.remove(device);
-          _peers.add(device);
-        } else {
-          _peers.add(ConnectedDevice(endpoint[1], true, endpoint[0]));
-        }
+            orElse: () =>
+                ConnectedDevice(endpoint[1], endpoint[0], true, true));
+        _discovered.removeWhere((element) => element.name == device.name);
+        _peers.add(device);
         notifyListeners();
+        _adhocManager.notifyNewConnection(_peers);
+        _firebaseManager.notifyNewConnection(_peers);
         break;
 
       case MessageType.adhocConnectionEnded:
@@ -193,12 +193,33 @@ class PlayerManager extends ChangeNotifier {
         break;
 
       case MessageType.firebaseConnection:
-        var peer = ConnectedDevice(data['id'], false, data["name"]);
+        var peer = ConnectedDevice(data['id'], data["name"], false, true);
         // Check for duplicate
         var duplicate = _peers.firstWhere((element) => peer.id == element.id,
             orElse: () => null);
-        if (duplicate == null) _peers.add(peer);
+        if (duplicate == null) {
+          _peers.add(peer);
+          notifyListeners();
+        }
+        _adhocManager.notifyNewConnection(_peers);
+        break;
+
+      case MessageType.indirectConnection:
+        var json = jsonDecode(data['connections'] as String) as List;
+        var devices = json.map((p) => ConnectedDevice.fromJson(p)).toList();
+
+        // Update list of peers with new info
+        for (var device in devices) {
+          var duplicate = _peers.firstWhere(
+              (element) => device.id == element.id,
+              orElse: () => null);
+          if (duplicate == null) {
+            device.isDirect = false;
+            _peers.add(device);
+          }
+        }
         notifyListeners();
+        _transferMessage(data);
         break;
 
       case MessageType.startGame:
@@ -211,6 +232,7 @@ class PlayerManager extends ChangeNotifier {
       case MessageType.leaveGroup:
         _peers.removeWhere((device) => device.id == data['id']);
         notifyListeners();
+        _transferMessage(data);
         break;
 
       case MessageType.sendColorTapped:

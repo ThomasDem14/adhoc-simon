@@ -28,6 +28,43 @@ class MainPage extends StatelessWidget {
           child: const Text("Start game with group"),
         ),
       ),
+      SizedBox(height: 5),
+      // Connected (indirect only) devices
+      Expanded(
+        child: Consumer<PlayerManager>(
+          builder: (context, player, child) {
+            var peers = player.getPeeredDevices();
+            return ListView.builder(
+              padding: EdgeInsets.all(5.0),
+              itemCount: peers.length,
+              itemBuilder: (BuildContext context, int index) {
+                var device = peers.elementAt(index);
+                return device.isDirect
+                    ? Container()
+                    : Card(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            ListTile(
+                              leading: Icon(Icons.person),
+                              title: Center(child: Text(device.name)),
+                              subtitle: Center(
+                                  child: device.isAdhoc
+                                      ? Text('(Indirect) AdHoc Player')
+                                      : Text('(Indirect) Internet Player')),
+                            ),
+                            TextButton(
+                              child: const Text('Indirectly Connected'),
+                              onPressed: () => {},
+                            ),
+                          ],
+                        ),
+                      );
+              },
+            );
+          },
+        ),
+      ),
     ]);
   }
 }

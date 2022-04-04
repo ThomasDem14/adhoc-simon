@@ -75,9 +75,8 @@ class InternetPage extends StatelessWidget {
               itemCount: peers.length,
               itemBuilder: (BuildContext context, int index) {
                 var device = peers.elementAt(index);
-                return device.isAdhoc
-                    ? Container()
-                    : Card(
+                return !device.isAdhoc && device.isDirect
+                    ? Card(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
@@ -92,7 +91,8 @@ class InternetPage extends StatelessWidget {
                             ),
                           ],
                         ),
-                      );
+                      )
+                    : Container();
               },
             );
           },

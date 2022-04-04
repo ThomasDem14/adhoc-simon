@@ -76,7 +76,7 @@ class AdhocPage extends StatelessWidget {
                 else {
                   int i = index - devices.length;
                   var device = peers.elementAt(i);
-                  return device.isAdhoc
+                  return device.isAdhoc && device.isDirect
                       ? Card(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,

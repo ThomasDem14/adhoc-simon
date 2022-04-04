@@ -33,6 +33,9 @@ abstract class ServiceManager {
   /// Transfer a message to all its peers.
   void transferMessage(Map data);
 
+  /// Notify a new connection to all peers.
+  void notifyNewConnection(List<ConnectedDevice> devices);
+
   /// ************  Main page actions ************/
 
   /// Notify others that you leave the room.

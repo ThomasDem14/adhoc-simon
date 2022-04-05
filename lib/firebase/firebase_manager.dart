@@ -22,7 +22,7 @@ class FirebaseManager extends ServiceManager {
 
   StreamSubscription _connectivitySubscription;
 
-  FirebaseManager(id) : super(id);
+  FirebaseManager(String uuid) : super(uuid);
 
   ///******** ServiceManager functions ********/
 
@@ -65,7 +65,9 @@ class FirebaseManager extends ServiceManager {
     // Remove the peers entry because it is a Firebase message.
     data.remove("peers");
     // Override with your id.
-    data['id'] = this.id;
+    // NB: With FireBase devices, id == uuid.
+    data['uuid'] = this.uuid;
+    data['id'] = this.uuid;
     _reference.push().set(data);
   }
 
@@ -74,7 +76,8 @@ class FirebaseManager extends ServiceManager {
 
     _reference.push().set({
       "type": MessageType.indirectConnection.name,
-      "id": id,
+      "uuid": uuid,
+      "id": uuid,
       "connections": jsonEncode(devices),
     });
   }
@@ -94,7 +97,8 @@ class FirebaseManager extends ServiceManager {
 
     _reference.push().set({
       "type": MessageType.sendColorTapped.name,
-      "id": id,
+      "id": uuid,
+      "uuid": uuid,
       "color": color.name,
     });
   }
@@ -104,19 +108,20 @@ class FirebaseManager extends ServiceManager {
 
     _reference.push().set({
       "type": MessageType.sendLevelChange.name,
-      "id": id,
+      "id": uuid,
+      "uuid": uuid,
       "restart": restart,
     });
   }
 
-  void startGame(int seed, List<ConnectedDevice> players) async {
+  void startGame(int seed) async {
     if (!this.enabled) return;
 
     _reference.push().set({
       "type": MessageType.startGame.name,
-      "id": id,
+      "id": uuid,
+      "uuid": uuid,
       "seed": seed,
-      "peers": jsonEncode(players),
     });
   }
 
@@ -136,7 +141,8 @@ class FirebaseManager extends ServiceManager {
     _reference.push().set({
       "type": MessageType.firebaseConnection.name,
       "name": name,
-      "id": id,
+      "id": uuid,
+      "uuid": uuid,
     });
   }
 
@@ -149,17 +155,18 @@ class FirebaseManager extends ServiceManager {
     if (snapshot.exists) {
       // For each user, send a firebaseConnection message.
       var object = snapshot.value as Map;
-      for (Object uuid in object.keys) {
+      for (Object objectUuid in object.keys) {
         streamController.add({
           "type": MessageType.firebaseConnection.name,
-          "name": object[uuid]["name"].toString(),
-          "id": uuid.toString(),
+          "name": object[objectUuid]["name"].toString(),
+          "id": objectUuid.toString(),
+          "uuid": objectUuid.toString(),
         });
       }
     }
 
     // Add yourself in the user list.
-    _database.ref('rooms/$_roomId/users/$id').set({
+    _database.ref('rooms/$_roomId/users/$uuid').set({
       "name": name,
     });
 
@@ -169,8 +176,8 @@ class FirebaseManager extends ServiceManager {
       var data = event.snapshot.value as Map;
 
       // Do not consider messages from yourself from Firebase.
-      var senderId = data['id'] as String;
-      if (id == senderId) return;
+      var senderId = data['uuid'] as String;
+      if (uuid == senderId) return;
 
       streamController.add(data);
     });
@@ -181,11 +188,12 @@ class FirebaseManager extends ServiceManager {
     // Send leaveGroup message.
     await _reference.push().set({
       "type": MessageType.leaveGroup.name,
-      "id": id,
+      "id": uuid,
+      "uuid": uuid,
     });
 
     // Remove yourself from the user list.
-    _database.ref('rooms/$_roomId/users/$id').remove();
+    _database.ref('rooms/$_roomId/users/$uuid').remove();
 
     // If no more users, delete channel.
     DataSnapshot snapshot = await _database.ref('rooms/$_roomId/users').get();

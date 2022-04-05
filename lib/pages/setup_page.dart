@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:adhoc_gaming/pages/organisation_page.dart';
 import 'package:adhoc_gaming/pages/page_settings.dart';
 import 'package:adhoc_gaming/player/player_manager.dart';
@@ -65,7 +67,8 @@ class _SetupPageState extends State<SetupPage> {
                     providers: [
                       ChangeNotifierProvider(
                           create: (context) => PlayerManager(
-                              textController.text, _selection.indexOf(true))),
+                              _uniqueName(textController.text),
+                              _selection.indexOf(true))),
                       ChangeNotifierProvider(
                           create: (context) => PageSettings()),
                     ],
@@ -77,5 +80,12 @@ class _SetupPageState extends State<SetupPage> {
             ),
           ),
         ]));
+  }
+
+  /// Transfrorm a name into a unique one by adding 4 random digits.
+  String _uniqueName(String name) {
+    var rng = Random();
+    var code = rng.nextInt(9000) + 1000;
+    return name + "#" + code.toString();
   }
 }

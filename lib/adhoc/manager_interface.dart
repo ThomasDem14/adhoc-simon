@@ -1,3 +1,4 @@
+import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/service_manager.dart';
 
 abstract class ManagerInterface extends ServiceManager {
@@ -7,5 +8,5 @@ abstract class ManagerInterface extends ServiceManager {
   void startDiscovery();
 
   /// Connect to a peer.
-  void connectPeer(String peer);
+  void connectPeer(ConnectedDevice peer);
 }

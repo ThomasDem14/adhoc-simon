@@ -14,6 +14,20 @@ class MainPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(children: [
       SizedBox(height: 5),
+      // Box with name
+      SizedBox(
+        height: 60,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            minimumSize: Size(double.infinity, 0),
+            textStyle: TextStyle(color: Colors.white),
+            primary: Colors.blue,
+          ),
+          onPressed: () {},
+          child: Text(Provider.of<PlayerManager>(context, listen: false).name),
+        ),
+      ),
+      SizedBox(height: 5),
       // Button start game
       SizedBox(
         height: 60,

@@ -12,7 +12,7 @@ class NearbyManager extends ManagerInterface {
 
   List<ConnectedDevice> _peers = List.empty(growable: true);
 
-  NearbyManager(id) : super(id);
+  NearbyManager(String uuid) : super(uuid);
 
   ///******** ServiceManager functions ********/
 
@@ -71,18 +71,18 @@ class NearbyManager extends ManagerInterface {
 
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.indirectConnection.name);
-    message.putIfAbsent('id', () => id);
+    message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('connections', () => jsonEncode(devices));
     message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
   }
 
-  void startGame(int seed, List<ConnectedDevice> players) {
+  void startGame(int seed) {
     if (!this.enabled) return;
 
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.startGame.name);
-    message.putIfAbsent('id', () => id);
+    message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('seed', () => seed);
     message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
@@ -94,7 +94,7 @@ class NearbyManager extends ManagerInterface {
     // Send leave message
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.leaveGroup.name);
-    message.putIfAbsent('id', () => id);
+    message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
 
@@ -108,7 +108,7 @@ class NearbyManager extends ManagerInterface {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.sendLevelChange.name);
     message.putIfAbsent('restart', () => restart);
-    message.putIfAbsent('id', () => id);
+    message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
   }
@@ -119,7 +119,7 @@ class NearbyManager extends ManagerInterface {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.sendColorTapped.name);
     message.putIfAbsent('color', () => color.name);
-    message.putIfAbsent('id', () => id);
+    message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
   }
@@ -153,8 +153,12 @@ class NearbyManager extends ManagerInterface {
         break;
       case NearbyMessageType.onConnectionAccepted:
         print("----- onConnection with device ${event.endpointId}");
-        _peers
-            .add(ConnectedDevice(event.endpointId, event.endpoint, true, true));
+        _peers.add(ConnectedDevice(
+            uuid: null,
+            id: event.endpointId,
+            name: event.endpoint,
+            isAdhoc: true,
+            isDirect: true));
         _sendMessageStream(
             MessageType.adhocConnection, [event.endpoint, event.endpointId]);
         break;
@@ -176,8 +180,11 @@ class NearbyManager extends ManagerInterface {
   }
 
   void _processMsgReceived(NearbyMessage message) {
-    print(message.payload);
-    streamController.add(jsonDecode(jsonEncode(message.payload)) as Map);
+    // The app only sends the uuid, the plugin sends the id.
+    // Let's add it in the message.
+    var json = jsonDecode(jsonDecode(jsonEncode(message.payload))) as Map;
+    json.putIfAbsent("id", () => message.endpointId);
+    streamController.add(json);
   }
 
   /// Start the adhoc discover process
@@ -188,9 +195,9 @@ class NearbyManager extends ManagerInterface {
   }
 
   /// Establish connection to the peer
-  void connectPeer(String peer) {
+  void connectPeer(ConnectedDevice peer) {
     if (!this.enabled) return;
 
-    _manager.connect(peer);
+    _manager.connect(peer.id);
   }
 }

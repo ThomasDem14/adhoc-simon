@@ -24,6 +24,9 @@ class AdhocManager extends ManagerInterface {
     _manager.eventStream.listen(_processAdHocEvent);
     _manager.open = true;
 
+    _manager.updateBluetoothAdapterName(name);
+    _manager.updateWifiAdapterName(name);
+
     if (_manager.isBluetoothEnabled() || _manager.isWifiEnabled()) {
       // If it was disabled, enable.
       if (!this.enabled) {
@@ -63,7 +66,6 @@ class AdhocManager extends ManagerInterface {
         }
       }
       data['peers'] = jsonEncode(totalPeers);
-      // TODO: Label from plugin is different from own id from uuid
       _manager.broadcastExceptList(
           jsonEncode(data), peersFromMsg.map((e) => e.id).toList());
     } else {
@@ -78,19 +80,19 @@ class AdhocManager extends ManagerInterface {
 
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.indirectConnection.name);
-    message.putIfAbsent('id', () => id);
+    message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('connections', () => jsonEncode(devices));
     message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
   }
 
-  void startGame(int seed, List<ConnectedDevice> players) {
+  void startGame(int seed) {
     if (!this.enabled) return;
 
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.startGame.name);
-    message.putIfAbsent('id', () => id);
-    message.putIfAbsent('peers', () => jsonEncode(players));
+    message.putIfAbsent('uuid', () => uuid);
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
     message.putIfAbsent('seed', () => seed);
     _manager.broadcast(jsonEncode(message));
   }
@@ -101,7 +103,7 @@ class AdhocManager extends ManagerInterface {
     // Send leave message
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.leaveGroup.name);
-    message.putIfAbsent('id', () => id);
+    message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
 
@@ -115,7 +117,7 @@ class AdhocManager extends ManagerInterface {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.sendLevelChange.name);
     message.putIfAbsent('restart', () => restart);
-    message.putIfAbsent('id', () => id);
+    message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
   }
@@ -126,7 +128,7 @@ class AdhocManager extends ManagerInterface {
     var message = HashMap<String, dynamic>();
     message.putIfAbsent('type', () => MessageType.sendColorTapped.name);
     message.putIfAbsent('color', () => color.name);
-    message.putIfAbsent('id', () => id);
+    message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
   }
@@ -142,6 +144,7 @@ class AdhocManager extends ManagerInterface {
       case AdHocType.onDeviceDiscovered:
         print("----- onDeviceDiscovered");
         _discovered.add(event.device);
+        // A discovered device does not have a label yet => use mac as id.
         _sendMessageStream(MessageType.adhocDiscovered,
             [event.device.name, _macFromAdhocDevice(event.device)]);
         break;
@@ -158,10 +161,16 @@ class AdhocManager extends ManagerInterface {
         break;
       case AdHocType.onConnection:
         print("----- onConnection with device ${event.device.name}");
+        // On connection, use mac to retrieve the discovered device,
+        // then use device.label as id.
         _discovered.removeWhere((device) =>
             _macFromAdhocDevice(device) == _macFromAdhocDevice(event.device));
-        _peers.add(
-            ConnectedDevice(event.device.label, event.device.name, true, true));
+        _peers.add(ConnectedDevice(
+            uuid: null,
+            id: event.device.label,
+            name: event.device.name,
+            isAdhoc: true,
+            isDirect: true));
         _sendMessageStream(MessageType.adhocConnection,
             [event.device.name, event.device.label]);
         break;
@@ -193,8 +202,11 @@ class AdhocManager extends ManagerInterface {
   }
 
   void _processMsgReceived(Event message) {
-    print(message.data);
-    streamController.add(jsonDecode(message.data) as Map);
+    // The app only sends the uuid, the plugin sends the id.
+    // Let's add it in the message.
+    var json = jsonDecode(jsonDecode(jsonEncode(message.data))) as Map;
+    json.putIfAbsent("id", () => message.device.label);
+    streamController.add(json);
   }
 
   /// Start the adhoc discover process
@@ -205,12 +217,12 @@ class AdhocManager extends ManagerInterface {
   }
 
   /// Establish connection to the peer
-  void connectPeer(String peer) async {
+  void connectPeer(ConnectedDevice peer) async {
     if (!this.enabled) return;
 
     // TODO: Check WiFi Direct connect
     await _manager.connect(_discovered
-        .firstWhere((device) => _macFromAdhocDevice(device) == peer));
+        .firstWhere((device) => _macFromAdhocDevice(device) == peer.id));
   }
 
   /// Returns the mac address of the given AdHocDevice.

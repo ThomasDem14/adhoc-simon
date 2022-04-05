@@ -66,7 +66,7 @@ class AdhocPage extends StatelessWidget {
                         ),
                         TextButton(
                           child: const Text('Connect'),
-                          onPressed: () async => player.connectPeer(device.id),
+                          onPressed: () async => player.connectPeer(device),
                         ),
                       ],
                     ),

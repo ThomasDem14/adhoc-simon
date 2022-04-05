@@ -101,14 +101,15 @@ class PlayerManager extends ChangeNotifier {
   void startGame(int seed) {
     // Add yourself in the list of peers
     _peers.add(ConnectedDevice(
-      _id,
-      _name,
-      true,
-      true,
+      uuid: _id,
+      id: null,
+      name: _name,
+      isAdhoc: true,
+      isDirect: true,
     ));
 
-    _adhocManager.startGame(seed, _peers);
-    _firebaseManager.startGame(seed, _peers);
+    _adhocManager.startGame(seed);
+    _firebaseManager.startGame(seed);
 
     _startGameStreamController.add(seed);
   }
@@ -142,7 +143,7 @@ class PlayerManager extends ChangeNotifier {
     _adhocManager.startDiscovery();
   }
 
-  void connectPeer(String endpoint) async {
+  void connectPeer(ConnectedDevice endpoint) async {
     _adhocManager.connectPeer(endpoint);
   }
 
@@ -161,8 +162,12 @@ class PlayerManager extends ChangeNotifier {
             (element) => endpoint[1] == element.id,
             orElse: () => null);
         if (duplicate == null) {
-          _discovered
-              .add(ConnectedDevice(endpoint[1], endpoint[0], true, true));
+          _discovered.add(ConnectedDevice(
+              uuid: null,
+              id: endpoint[1],
+              name: endpoint[0],
+              isAdhoc: true,
+              isDirect: true));
           notifyListeners();
         }
         break;
@@ -177,8 +182,12 @@ class PlayerManager extends ChangeNotifier {
         var endpoint = data['data'] as List<String>;
         var device = _discovered.firstWhere(
             (element) => element.name == endpoint[0],
-            orElse: () =>
-                ConnectedDevice(endpoint[1], endpoint[0], true, true));
+            orElse: () => ConnectedDevice(
+                uuid: null,
+                id: endpoint[1],
+                name: endpoint[0],
+                isAdhoc: true,
+                isDirect: true));
         _discovered.removeWhere((element) => element.name == device.name);
         _peers.add(device);
         notifyListeners();
@@ -193,7 +202,12 @@ class PlayerManager extends ChangeNotifier {
         break;
 
       case MessageType.firebaseConnection:
-        var peer = ConnectedDevice(data['id'], data["name"], false, true);
+        var peer = ConnectedDevice(
+            uuid: data['uuid'],
+            id: data['id'],
+            name: data["name"],
+            isAdhoc: false,
+            isDirect: true);
         // Check for duplicate
         var duplicate = _peers.firstWhere((element) => peer.id == element.id,
             orElse: () => null);
@@ -210,6 +224,9 @@ class PlayerManager extends ChangeNotifier {
 
         // Update list of peers with new info
         for (var device in devices) {
+          // Check if it is you.
+          if (device.name == this._name) continue;
+          // Check for duplicates.
           var duplicate = _peers.firstWhere(
               (element) => device.id == element.id,
               orElse: () => null);
@@ -224,9 +241,8 @@ class PlayerManager extends ChangeNotifier {
 
       case MessageType.startGame:
         var seed = data['seed'] as int;
-        var json = jsonDecode(data['peers'] as String) as List;
-        _peers = json.map((p) => ConnectedDevice.fromJson(p)).toList();
         _startGameStreamController.add(seed);
+        _transferMessage(data);
         break;
 
       case MessageType.leaveGroup:
@@ -267,6 +283,7 @@ class PlayerManager extends ChangeNotifier {
   List<ConnectedDevice> getPeeredDevices() => _peers;
   int get nbPlayers => _peers.length;
   String get roomId => _firebaseManager.getRoomId();
+  String get name => _name;
   bool get isFirebaseEnabled => _firebaseManager.enabled;
   bool get isAdhocEnabled => _adhocManager.enabled;
   bool get enabled => _enabled;

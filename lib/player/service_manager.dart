@@ -13,10 +13,10 @@ abstract class ServiceManager {
   Stream<bool> connectivity;
   bool enabled;
 
-  String id;
+  String uuid;
   String name;
 
-  ServiceManager(this.id) {
+  ServiceManager(this.uuid) {
     enabled = false;
     stream = streamController.stream;
     connectivity = connectivityController.stream;
@@ -42,7 +42,7 @@ abstract class ServiceManager {
   void leaveGroup();
 
   /// Notify others that the game has started.
-  void startGame(int seed, List<ConnectedDevice> players);
+  void startGame(int seed);
 
   /// ************  Game page actions ************/
 

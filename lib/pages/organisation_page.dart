@@ -32,10 +32,16 @@ class _OrganisationPage extends State<OrganisationPage> {
         .listen((seed) {
       SchedulerBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => ChangeNotifierProvider(
-            create: (context) => SimonGame(
-                Provider.of<PlayerManager>(context, listen: false).nbPlayers,
-                seed),
+          builder: (_) => MultiProvider(
+            providers: [
+              ChangeNotifierProvider(
+                  create: (_) => SimonGame(
+                      Provider.of<PlayerManager>(context, listen: false)
+                          .nbPlayers,
+                      seed)),
+              ChangeNotifierProvider.value(
+                  value: Provider.of<PlayerManager>(context, listen: false)),
+            ],
             child: GamePage(),
           ),
         ));

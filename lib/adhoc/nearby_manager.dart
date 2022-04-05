@@ -177,7 +177,7 @@ class NearbyManager extends ManagerInterface {
 
   void _processMsgReceived(NearbyMessage message) {
     print(message.payload);
-    streamController.add(jsonDecode(message.payload) as Map);
+    streamController.add(jsonDecode(jsonEncode(message.payload)) as Map);
   }
 
   /// Start the adhoc discover process

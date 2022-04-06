@@ -102,7 +102,7 @@ class NearbyManager extends ManagerInterface {
     _manager.disconnectAll();
   }
 
-  void sendNextLevel(bool restart) {
+  void sendNextLevel(int restart) {
     if (!this.enabled) return;
 
     var message = HashMap<String, dynamic>();

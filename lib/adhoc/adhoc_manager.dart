@@ -17,15 +17,12 @@ class AdhocManager extends ManagerInterface {
 
   ///******** ServiceManager functions ********/
 
-  void enable(String name) {
+  Future<void> enable(String name) async {
     this.name = name;
 
     _manager.enable();
     _manager.eventStream.listen(_processAdHocEvent);
     _manager.open = true;
-
-    _manager.updateBluetoothAdapterName(name);
-    _manager.updateWifiAdapterName(name);
 
     if (_manager.isBluetoothEnabled() || _manager.isWifiEnabled()) {
       // If it was disabled, enable.
@@ -33,6 +30,16 @@ class AdhocManager extends ManagerInterface {
         print('[AdhocManager] Enabled');
         this.enabled = true;
         connectivityController.add(true);
+        // Update the name
+        // TODO: Does not work
+        if (_manager.isBluetoothEnabled()) {
+          _manager.resetAdapterName(1);
+          await _manager.updateBluetoothAdapterName(name);
+        }
+        if (_manager.isWifiEnabled()) {
+          _manager.resetAdapterName(0);
+          await _manager.updateWifiAdapterName(name);
+        }
       }
     } else {
       // If it was enabled, disable.
@@ -111,7 +118,7 @@ class AdhocManager extends ManagerInterface {
     _manager.disconnectAll();
   }
 
-  void sendNextLevel(bool restart) {
+  void sendNextLevel(int restart) {
     if (!this.enabled) return;
 
     var message = HashMap<String, dynamic>();

@@ -28,17 +28,17 @@ class PlayerManager extends ChangeNotifier {
   // ignore: close_sinks
   StreamController _startGameStreamController =
       StreamController<int>.broadcast();
-  Stream startGameStream;
+  Stream<int> startGameStream;
 
   // ignore: close_sinks
   StreamController _levelGameStreamController =
-      StreamController<bool>.broadcast();
-  Stream levelGameStream;
+      StreamController<int>.broadcast();
+  Stream<int> levelGameStream;
 
   // ignore: close_sinks
   StreamController _colorStreamController =
       StreamController<GameColors>.broadcast();
-  Stream colorStream;
+  Stream<GameColors> colorStream;
 
   /// plugin: 0 for adhoc_plugin & 1 for nearby_plugin
   PlayerManager(String name, int plugin) {
@@ -118,14 +118,12 @@ class PlayerManager extends ChangeNotifier {
     _adhocManager.leaveGroup();
     _firebaseManager.leaveGroup();
 
-    // TODO: Handle a player leaving mid game
-
     _discovered = List.empty(growable: true);
     _peers = List.empty(growable: true);
     notifyListeners();
   }
 
-  void sendNextLevel(bool restart) {
+  void sendNextLevel(int restart) {
     _adhocManager.sendNextLevel(restart);
     _firebaseManager.sendNextLevel(restart);
 
@@ -247,6 +245,8 @@ class PlayerManager extends ChangeNotifier {
 
       case MessageType.leaveGroup:
         _peers.removeWhere((device) => device.id == data['id']);
+        // Reset the game with a new number of players
+        _levelGameStreamController.add(_peers.length);
         notifyListeners();
         _transferMessage(data);
         break;
@@ -258,7 +258,7 @@ class PlayerManager extends ChangeNotifier {
         break;
 
       case MessageType.sendLevelChange:
-        var restart = data['restart'] as bool;
+        var restart = data['restart'] as int;
         _levelGameStreamController.add(restart);
         _transferMessage(data);
         break;

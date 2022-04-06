@@ -4,6 +4,9 @@ import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_gaming/player/connected_device.dart';
 
 abstract class ServiceManager {
+  static const int NEXT_LEVEL = -1;
+  static const int RESTART_GAME = -2;
+
   // ignore: close_sinks
   StreamController streamController = StreamController<Map>.broadcast();
   Stream<Map> stream;
@@ -47,7 +50,7 @@ abstract class ServiceManager {
   /// ************  Game page actions ************/
 
   /// Notify that the next level has started.
-  void sendNextLevel(bool restart);
+  void sendNextLevel(int restart);
 
   /// Notify the color pressed.
   void sendColorTapped(GameColors color);

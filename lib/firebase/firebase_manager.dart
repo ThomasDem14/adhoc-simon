@@ -103,7 +103,7 @@ class FirebaseManager extends ServiceManager {
     });
   }
 
-  void sendNextLevel(bool restart) async {
+  void sendNextLevel(int restart) async {
     if (!this.enabled) return;
 
     _reference.push().set({

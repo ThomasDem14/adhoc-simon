@@ -4,6 +4,7 @@ import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_gaming/game/game_widgets.dart';
 import 'package:adhoc_gaming/game/simon_game.dart';
 import 'package:adhoc_gaming/player/player_manager.dart';
+import 'package:adhoc_gaming/player/service_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,17 +22,19 @@ class _GamePageState extends State<GamePage> {
 
     _subscriptions.add(Provider.of<PlayerManager>(context, listen: false)
         .colorStream
-        .listen((color) {
+        .listen((GameColors color) {
       Provider.of<SimonGame>(context, listen: false).processInput(color);
     }));
 
     _subscriptions.add(Provider.of<PlayerManager>(context, listen: false)
         .levelGameStream
-        .listen((restart) {
-      if (restart) {
+        .listen((int restart) {
+      if (restart == ServiceManager.RESTART_GAME) {
         Provider.of<SimonGame>(context, listen: false).restart();
-      } else {
+      } else if (restart == ServiceManager.NEXT_LEVEL) {
         Provider.of<SimonGame>(context, listen: false).startLevel();
+      } else {
+        Provider.of<SimonGame>(context, listen: false).reset(restart);
       }
     }));
   }
@@ -41,6 +44,7 @@ class _GamePageState extends State<GamePage> {
     _subscriptions.forEach((sub) {
       sub.cancel();
     });
+    Provider.of<PlayerManager>(context, listen: false).dispose();
     super.dispose();
   }
 
@@ -90,13 +94,13 @@ class _GamePageState extends State<GamePage> {
                       child: const Text("Restart"),
                       onPressed: () =>
                           Provider.of<PlayerManager>(context, listen: false)
-                              .sendNextLevel(true),
+                              .sendNextLevel(ServiceManager.RESTART_GAME),
                     )
                   : ElevatedButton(
                       child: const Text("Continue"),
                       onPressed: () =>
                           Provider.of<PlayerManager>(context, listen: false)
-                              .sendNextLevel(false),
+                              .sendNextLevel(ServiceManager.NEXT_LEVEL),
                     ),
             ),
             SizedBox(height: 20),

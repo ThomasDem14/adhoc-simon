@@ -7,7 +7,7 @@ class SimonGame extends ChangeNotifier {
   int _seed;
   Random _random;
 
-  final int _nbPlayers;
+  int _nbPlayers;
 
   int _level = 0;
   int _turnSequence = 0;
@@ -34,6 +34,12 @@ class SimonGame extends ChangeNotifier {
   /// Returns a random color from the enum list.
   GameColors _randomColor() {
     return GameColors.values[_random.nextInt(GameColors.values.length - 1)];
+  }
+
+  /// Restart with a new number of players
+  void reset(int players) {
+    _nbPlayers = players;
+    restart();
   }
 
   /// Reset the default settings.

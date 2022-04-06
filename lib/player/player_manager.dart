@@ -178,19 +178,15 @@ class PlayerManager extends ChangeNotifier {
 
       case MessageType.adhocConnection:
         var endpoint = data['data'] as List<String>;
-        var device = _discovered.firstWhere(
-            (element) => element.name == endpoint[0],
-            orElse: () => ConnectedDevice(
-                uuid: null,
-                id: endpoint[1],
-                name: endpoint[0],
-                isAdhoc: true,
-                isDirect: true));
+        var device = ConnectedDevice(
+            uuid: null,
+            id: endpoint[1],
+            name: endpoint[0],
+            isAdhoc: true,
+            isDirect: true);
         _discovered.removeWhere((element) => element.name == device.name);
-        _peers.add(device);
         notifyListeners();
-        _adhocManager.notifyNewConnection(_peers);
-        _firebaseManager.notifyNewConnection(_peers);
+        _adhocManager.exchangeUUID(device);
         break;
 
       case MessageType.adhocConnectionEnded:
@@ -207,13 +203,33 @@ class PlayerManager extends ChangeNotifier {
             isAdhoc: false,
             isDirect: true);
         // Check for duplicate
-        var duplicate = _peers.firstWhere((element) => peer.id == element.id,
+        var duplicate = _peers.firstWhere(
+            (element) => peer.uuid == element.uuid,
             orElse: () => null);
         if (duplicate == null) {
           _peers.add(peer);
           notifyListeners();
         }
         _adhocManager.notifyNewConnection(_peers);
+        break;
+
+      case MessageType.exchangeUUID:
+        var peer = ConnectedDevice(
+            uuid: data['uuid'],
+            id: data['id'],
+            name: data["name"],
+            isAdhoc: true,
+            isDirect: true);
+        // Check for duplicate
+        var duplicate = _peers.firstWhere(
+            (element) => peer.uuid == element.uuid,
+            orElse: () => null);
+        if (duplicate == null) {
+          _peers.add(peer);
+          notifyListeners();
+        }
+        _adhocManager.notifyNewConnection(_peers);
+        _firebaseManager.notifyNewConnection(_peers);
         break;
 
       case MessageType.indirectConnection:
@@ -223,16 +239,17 @@ class PlayerManager extends ChangeNotifier {
         // Update list of peers with new info
         for (var device in devices) {
           // Check if it is you.
-          if (device.name == this._name) continue;
+          if (device.uuid == this._id) continue;
           // Check for duplicates.
           var duplicate = _peers.firstWhere(
-              (element) => device.id == element.id,
+              (element) => device.uuid == element.uuid,
               orElse: () => null);
           if (duplicate == null) {
             device.isDirect = false;
             _peers.add(device);
           }
         }
+
         notifyListeners();
         _transferMessage(data);
         break;

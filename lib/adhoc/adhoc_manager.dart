@@ -72,14 +72,29 @@ class AdhocManager extends ManagerInterface {
           totalPeers.add(peer);
         }
       }
+      // Update list of peers.
       data['peers'] = jsonEncode(totalPeers);
+      // Override with own uuid.
+      data['uuid'] = uuid;
       _manager.broadcastExceptList(
           jsonEncode(data), peersFromMsg.map((e) => e.id).toList());
     } else {
       // Else, add your peers in the message and broadcast it.
       data.putIfAbsent("peers", () => jsonEncode(_peers));
+      // Override with own uuid.
+      data['uuid'] = uuid;
       _manager.broadcast(jsonEncode(data));
     }
+  }
+
+  void exchangeUUID(ConnectedDevice peer) {
+    if (!this.enabled) return;
+
+    var message = HashMap<String, dynamic>();
+    message.putIfAbsent('type', () => MessageType.exchangeUUID.name);
+    message.putIfAbsent('uuid', () => uuid);
+    message.putIfAbsent('name', () => name);
+    _manager.sendMessageTo(jsonEncode(message), peer.id);
   }
 
   void notifyNewConnection(List<ConnectedDevice> devices) {

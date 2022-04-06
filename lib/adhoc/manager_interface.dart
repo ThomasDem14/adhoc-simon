@@ -9,4 +9,7 @@ abstract class ManagerInterface extends ServiceManager {
 
   /// Connect to a peer.
   void connectPeer(ConnectedDevice peer);
+
+  /// Send own uuid to a peer.
+  void exchangeUUID(ConnectedDevice peer);
 }

@@ -39,6 +39,9 @@ abstract class ServiceManager {
   /// Notify a new connection to all peers.
   void notifyNewConnection(List<ConnectedDevice> devices);
 
+  // Notify that a device has disconnected.
+  void notifyDisconnected(ConnectedDevice device);
+
   /// ************  Main page actions ************/
 
   /// Notify others that you leave the room.

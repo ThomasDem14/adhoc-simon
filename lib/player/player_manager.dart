@@ -190,9 +190,15 @@ class PlayerManager extends ChangeNotifier {
         break;
 
       case MessageType.adhocConnectionEnded:
-        var endpoint = data['data'] as String;
-        _peers.removeWhere((element) => element.id == endpoint);
+        var disconnected =
+            _peers.firstWhere((element) => element.id == data['data']);
+        _peers.removeWhere((element) => element.id == data['data']);
+        // Reset the game with a new number of players
+        _levelGameStreamController.add(_peers.length);
         notifyListeners();
+        // Send leaveGroup message to others
+        _adhocManager.notifyDisconnected(disconnected);
+        _firebaseManager.notifyDisconnected(disconnected);
         break;
 
       case MessageType.firebaseConnection:
@@ -254,6 +260,16 @@ class PlayerManager extends ChangeNotifier {
         _transferMessage(data);
         break;
 
+      case MessageType.indirectDisconnect:
+        var disconnected =
+            ConnectedDevice.fromJson(jsonDecode(data['disconnected']));
+        _peers.removeWhere((device) => device.id == disconnected.id);
+        // Reset the game with a new number of players
+        _levelGameStreamController.add(_peers.length);
+        notifyListeners();
+        _transferMessage(data);
+        break;
+
       case MessageType.startGame:
         var seed = data['seed'] as int;
         _startGameStreamController.add(seed);
@@ -261,7 +277,7 @@ class PlayerManager extends ChangeNotifier {
         break;
 
       case MessageType.leaveGroup:
-        _peers.removeWhere((device) => device.id == data['id']);
+        _peers.removeWhere((device) => device.uuid == data['uuid']);
         // Reset the game with a new number of players
         _levelGameStreamController.add(_peers.length);
         notifyListeners();

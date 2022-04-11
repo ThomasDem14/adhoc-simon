@@ -44,6 +44,7 @@ class _GamePageState extends State<GamePage> {
     _subscriptions.forEach((sub) {
       sub.cancel();
     });
+    // TODO: To call onDestroy
     Provider.of<PlayerManager>(context, listen: false).dispose();
     super.dispose();
   }

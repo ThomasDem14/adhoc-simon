@@ -31,7 +31,7 @@ class AdhocManager extends ManagerInterface {
         this.enabled = true;
         connectivityController.add(true);
         // Update the name
-        // TODO: Does not work
+        // TODO: Does not work (bonus)
         if (_manager.isBluetoothEnabled()) {
           _manager.resetAdapterName(1);
           await _manager.updateBluetoothAdapterName(name);
@@ -104,6 +104,17 @@ class AdhocManager extends ManagerInterface {
     message.putIfAbsent('type', () => MessageType.indirectConnection.name);
     message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('connections', () => jsonEncode(devices));
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
+    _manager.broadcast(jsonEncode(message));
+  }
+
+  void notifyDisconnected(ConnectedDevice device) {
+    if (!this.enabled) return;
+
+    var message = HashMap<String, dynamic>();
+    message.putIfAbsent('type', () => MessageType.indirectDisconnect.name);
+    message.putIfAbsent('uuid', () => uuid);
+    message.putIfAbsent('disconnected', () => jsonEncode(device));
     message.putIfAbsent('peers', () => jsonEncode(_peers));
     _manager.broadcast(jsonEncode(message));
   }

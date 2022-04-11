@@ -5,6 +5,7 @@ enum MessageType {
   adhocConnectionEnded,
   firebaseConnection,
   indirectConnection,
+  indirectDisconnect,
   exchangeUUID,
   startGame,
   leaveGroup,
@@ -25,6 +26,8 @@ MessageType getMessageTypeFromString(String typeString) {
     return MessageType.firebaseConnection;
   else if (typeString == "indirectConnection")
     return MessageType.indirectConnection;
+  else if (typeString == "indirectDisconnect")
+    return MessageType.indirectDisconnect;
   else if (typeString == "exchangeUUID")
     return MessageType.exchangeUUID;
   else if (typeString == "startGame")

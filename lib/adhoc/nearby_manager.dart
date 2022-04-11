@@ -91,6 +91,17 @@ class NearbyManager extends ManagerInterface {
     _manager.broadcast(jsonEncode(message));
   }
 
+  void notifyDisconnected(ConnectedDevice device) {
+    if (!this.enabled) return;
+
+    var message = HashMap<String, dynamic>();
+    message.putIfAbsent('type', () => MessageType.indirectDisconnect.name);
+    message.putIfAbsent('uuid', () => uuid);
+    message.putIfAbsent('disconnected', () => jsonEncode(device));
+    message.putIfAbsent('peers', () => jsonEncode(_peers));
+    _manager.broadcast(jsonEncode(message));
+  }
+
   void startGame(int seed) {
     if (!this.enabled) return;
 

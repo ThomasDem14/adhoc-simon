@@ -82,6 +82,17 @@ class FirebaseManager extends ServiceManager {
     });
   }
 
+  void notifyDisconnected(ConnectedDevice device) {
+    if (!this.enabled) return;
+
+    _reference.push().set({
+      "type": MessageType.indirectConnection.name,
+      "uuid": uuid,
+      "id": uuid,
+      "disconnected": jsonEncode(device),
+    });
+  }
+
   void leaveGroup() async {
     if (!this.enabled) return;
 

@@ -155,7 +155,7 @@ class PlayerManager extends ChangeNotifier {
     MessageType type = getMessageTypeFromString(data['type'] as String)!;
     switch (type) {
       case MessageType.adhocDiscovered:
-        var endpoint = data['data'] as List<String>;
+        var endpoint = data['data'] as List<String?>;
         // Check for duplicate
         var duplicate = _discovered
             .firstWhereOrNull((element) => endpoint[1] == element.id);
@@ -177,7 +177,7 @@ class PlayerManager extends ChangeNotifier {
         break;
 
       case MessageType.adhocConnection:
-        var endpoint = data['data'] as List<String>;
+        var endpoint = data['data'] as List<String?>;
         var device = ConnectedDevice(
             uuid: null,
             id: endpoint[1],

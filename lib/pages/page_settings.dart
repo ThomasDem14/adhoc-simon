@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class PageSettings extends ChangeNotifier {
   bool _isAnimated = false;
-  ScrollPhysics _physics;
+  ScrollPhysics? _physics;
   int _bottomSelected = 1;
   final PageController controller = PageController(initialPage: 1);
   final int _duration = 300;
@@ -33,5 +33,5 @@ class PageSettings extends ChangeNotifier {
   }
 
   int getBottomIndex() => _bottomSelected;
-  ScrollPhysics getScrollPhysics() => _physics;
+  ScrollPhysics? getScrollPhysics() => _physics;
 }

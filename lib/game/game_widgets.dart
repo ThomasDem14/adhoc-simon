@@ -2,12 +2,12 @@ import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:flutter/material.dart';
 
 class GameWidgets extends StatelessWidget {
-
   final Widget child;
   final GameColors colorToDisplay;
   final ValueSetter<GameColors> onTap;
 
-  GameWidgets({this.colorToDisplay, this.child, this.onTap});
+  GameWidgets(
+      {required this.colorToDisplay, required this.child, required this.onTap});
 
   Color _getColor(GameColors color) {
     Color returnColor;
@@ -32,12 +32,12 @@ class GameWidgets extends StatelessWidget {
   }
 
   Color _getColorToDisplay(GameColors color, GameColors compare) {
-    if (color == compare)
-      return _getColor(color);
+    if (color == compare) return _getColor(color);
     return _getColor(GameColors.Default);
   }
 
-  Widget _ledButton(GameColors initialColor, GameColors colorToDisplay, VoidCallback onTap) {
+  Widget _ledButton(
+      GameColors initialColor, GameColors colorToDisplay, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -64,8 +64,10 @@ class GameWidgets extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _ledButton(GameColors.Blue, colorToDisplay, () => onTap(GameColors.Blue)),
-              _ledButton(GameColors.Red, colorToDisplay, () => onTap(GameColors.Red)),
+              _ledButton(GameColors.Blue, colorToDisplay,
+                  () => onTap(GameColors.Blue)),
+              _ledButton(
+                  GameColors.Red, colorToDisplay, () => onTap(GameColors.Red)),
             ],
           ),
         ),
@@ -74,8 +76,10 @@ class GameWidgets extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _ledButton(GameColors.Yellow, colorToDisplay, () => onTap(GameColors.Yellow)),
-              _ledButton(GameColors.Green, colorToDisplay, () => onTap(GameColors.Green)),
+              _ledButton(GameColors.Yellow, colorToDisplay,
+                  () => onTap(GameColors.Yellow)),
+              _ledButton(GameColors.Green, colorToDisplay,
+                  () => onTap(GameColors.Green)),
             ],
           ),
         ),

@@ -8,7 +8,7 @@ class MainPage extends StatelessWidget {
   final Random randomSeed = new Random();
   final TextEditingController textController;
 
-  MainPage({this.textController});
+  MainPage({required this.textController});
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +53,7 @@ class MainPage extends StatelessWidget {
               itemCount: peers.length,
               itemBuilder: (BuildContext context, int index) {
                 var device = peers.elementAt(index);
-                return device.isDirect
+                return device.isDirect!
                     ? Container()
                     : Card(
                         child: Column(
@@ -61,9 +61,9 @@ class MainPage extends StatelessWidget {
                           children: <Widget>[
                             ListTile(
                               leading: Icon(Icons.person),
-                              title: Center(child: Text(device.name)),
+                              title: Center(child: Text(device.name!)),
                               subtitle: Center(
-                                  child: device.isAdhoc
+                                  child: device.isAdhoc!
                                       ? Text('(Indirect) AdHoc Player')
                                       : Text('(Indirect) Internet Player')),
                             ),

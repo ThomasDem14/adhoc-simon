@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 class InternetPage extends StatelessWidget {
   final TextEditingController textController;
 
-  InternetPage({this.textController});
+  InternetPage({required this.textController});
 
   @override
   Widget build(BuildContext context) {
@@ -75,14 +75,14 @@ class InternetPage extends StatelessWidget {
               itemCount: peers.length,
               itemBuilder: (BuildContext context, int index) {
                 var device = peers.elementAt(index);
-                return !device.isAdhoc && device.isDirect
+                return !device.isAdhoc! && device.isDirect!
                     ? Card(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             ListTile(
                               leading: Icon(Icons.person),
-                              title: Center(child: Text(device.name)),
+                              title: Center(child: Text(device.name!)),
                               subtitle: Center(child: Text('Internet player')),
                             ),
                             TextButton(

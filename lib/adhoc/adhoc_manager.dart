@@ -6,6 +6,7 @@ import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_plugin/adhoc_plugin.dart';
+import 'package:collection/collection.dart';
 
 class AdhocManager extends ManagerInterface {
   final TransferManager _manager = TransferManager(true);
@@ -66,8 +67,7 @@ class AdhocManager extends ManagerInterface {
       var totalPeers = List<ConnectedDevice>.from(peersFromMsg);
       // .. and add yours.
       for (ConnectedDevice peer in _peers) {
-        if (totalPeers.firstWhere((element) => element.id == peer.id,
-                orElse: () => null) ==
+        if (totalPeers.firstWhereOrNull((element) => element.id == peer.id) ==
             null) {
           totalPeers.add(peer);
         }
@@ -77,7 +77,7 @@ class AdhocManager extends ManagerInterface {
       // Override with own uuid.
       data['uuid'] = uuid;
       _manager.broadcastExceptList(
-          jsonEncode(data), peersFromMsg.map((e) => e.id).toList());
+          jsonEncode(data), peersFromMsg.map((e) => e.id!).toList());
     } else {
       // Else, add your peers in the message and broadcast it.
       data.putIfAbsent("peers", () => jsonEncode(_peers));
@@ -94,7 +94,7 @@ class AdhocManager extends ManagerInterface {
     message.putIfAbsent('type', () => MessageType.exchangeUUID.name);
     message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('name', () => name);
-    _manager.sendMessageTo(jsonEncode(message), peer.id);
+    _manager.sendMessageTo(jsonEncode(message), peer.id!);
   }
 
   void notifyNewConnection(List<ConnectedDevice> devices) {
@@ -176,10 +176,10 @@ class AdhocManager extends ManagerInterface {
         break;
       case AdHocType.onDeviceDiscovered:
         print("----- onDeviceDiscovered");
-        _discovered.add(event.device);
+        _discovered.add(event.device!);
         // A discovered device does not have a label yet => use mac as id.
         _sendMessageStream(MessageType.adhocDiscovered,
-            [event.device.name, _macFromAdhocDevice(event.device)]);
+            [event.device!.name, _macFromAdhocDevice(event.device!)]);
         break;
       case AdHocType.onDiscoveryCompleted:
         print("----- onDiscoveryCompleted");
@@ -193,25 +193,25 @@ class AdhocManager extends ManagerInterface {
         _processMsgReceived(event);
         break;
       case AdHocType.onConnection:
-        print("----- onConnection with device ${event.device.name}");
+        print("----- onConnection with device ${event.device!.name}");
         // On connection, use mac to retrieve the discovered device,
         // then use device.label as id.
         _discovered.removeWhere((device) =>
-            _macFromAdhocDevice(device) == _macFromAdhocDevice(event.device));
+            _macFromAdhocDevice(device) == _macFromAdhocDevice(event.device!));
         _peers.add(ConnectedDevice(
             uuid: null,
-            id: event.device.label,
-            name: event.device.name,
+            id: event.device!.label,
+            name: event.device!.name,
             isAdhoc: true,
             isDirect: true));
         _sendMessageStream(MessageType.adhocConnection,
-            [event.device.name, event.device.label]);
+            [event.device!.name, event.device!.label]);
         break;
       case AdHocType.onConnectionClosed:
-        print("----- onConnectionClosed with device ${event.device.name}");
-        _peers.removeWhere((device) => device.id == event.device.label);
+        print("----- onConnectionClosed with device ${event.device!.name}");
+        _peers.removeWhere((device) => device.id == event.device!.label);
         _sendMessageStream(
-            MessageType.adhocConnectionEnded, event.device.label);
+            MessageType.adhocConnectionEnded, event.device!.label!);
         break;
       case AdHocType.onInternalException:
         print("----- onInternalException");
@@ -238,7 +238,7 @@ class AdhocManager extends ManagerInterface {
     // The app only sends the uuid, the plugin sends the id.
     // Let's add it in the message.
     var json = jsonDecode(jsonDecode(jsonEncode(message.data))) as Map;
-    json.putIfAbsent("id", () => message.device.label);
+    json.putIfAbsent("id", () => message.device!.label);
     streamController.add(json);
   }
 

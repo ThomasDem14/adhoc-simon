@@ -8,7 +8,7 @@ enum GameColors {
   Default,
 }
 
-GameColors getGameColorsFromString(String colorString) {
+GameColors? getGameColorsFromString(String colorString) {
   if (colorString == "Red")
     return GameColors.Red;
   else if (colorString == "Blue")

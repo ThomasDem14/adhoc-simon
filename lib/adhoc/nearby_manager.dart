@@ -5,6 +5,7 @@ import 'package:adhoc_gaming/adhoc/manager_interface.dart';
 import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
+import 'package:collection/collection.dart';
 import 'package:nearby_plugin/nearby_plugin.dart';
 
 class NearbyManager extends ManagerInterface {
@@ -19,7 +20,7 @@ class NearbyManager extends ManagerInterface {
   void enable(String name) {
     this.name = name;
 
-    _manager.enable(this.name).then((enabled) {
+    _manager.enable(this.name!).then((enabled) {
       if (enabled) {
         _manager.eventStream.listen(_processAdHocEvent);
         print('[NearbyManager] Enabled');
@@ -48,8 +49,7 @@ class NearbyManager extends ManagerInterface {
       var totalPeers = List<ConnectedDevice>.from(peersFromMsg);
       // .. and add yours.
       for (ConnectedDevice peer in _peers) {
-        if (totalPeers.firstWhere((element) => element.id == peer.id,
-                orElse: () => null) ==
+        if (totalPeers.firstWhereOrNull((element) => element.id == peer.id) ==
             null) {
           totalPeers.add(peer);
         }
@@ -60,7 +60,7 @@ class NearbyManager extends ManagerInterface {
       data['uuid'] = uuid;
       // Broadcast for all except the peers that already were in the message.
       _manager.broadcastExcept(
-          jsonEncode(data), peersFromMsg.map((e) => e.id).toList());
+          jsonEncode(data), peersFromMsg.map((e) => e.id!).toList());
     } else {
       // Else, add your peers in the message and broadcast it.
       data.putIfAbsent("peers", () => jsonEncode(_peers));
@@ -77,7 +77,7 @@ class NearbyManager extends ManagerInterface {
     message.putIfAbsent('type', () => MessageType.exchangeUUID.name);
     message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('name', () => name);
-    _manager.sendPayload(jsonEncode(message), peer.id);
+    _manager.sendPayload(jsonEncode(message), peer.id!);
   }
 
   void notifyNewConnection(List<ConnectedDevice> devices) {
@@ -167,7 +167,7 @@ class NearbyManager extends ManagerInterface {
         break;
       case NearbyMessageType.onEndpointLost:
         print("----- onEndpointLost: ${event.endpointId}");
-        _sendMessageStream(MessageType.adhocDiscoveredEnded, event.endpointId);
+        _sendMessageStream(MessageType.adhocDiscoveredEnded, event.endpointId!);
         break;
       case NearbyMessageType.onPayloadReceived:
         print("----- onPayloadReceived");
@@ -190,7 +190,7 @@ class NearbyManager extends ManagerInterface {
       case NearbyMessageType.onConnectionEnded:
         print("----- onConnectionClosed with device ${event.endpointId}");
         _peers.removeWhere((element) => element.id == event.endpointId);
-        _sendMessageStream(MessageType.adhocConnectionEnded, event.endpointId);
+        _sendMessageStream(MessageType.adhocConnectionEnded, event.endpointId!);
         break;
       default:
     }
@@ -223,6 +223,6 @@ class NearbyManager extends ManagerInterface {
   void connectPeer(ConnectedDevice peer) {
     if (!this.enabled) return;
 
-    _manager.connect(peer.id);
+    _manager.connect(peer.id!);
   }
 }

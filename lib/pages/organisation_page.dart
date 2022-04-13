@@ -21,7 +21,7 @@ class OrganisationPage extends StatefulWidget {
 class _OrganisationPage extends State<OrganisationPage> {
   final nameController = TextEditingController();
   final roomController = TextEditingController();
-  StreamSubscription _subscription;
+  late StreamSubscription _subscription;
 
   @override
   void initState() {
@@ -53,7 +53,7 @@ class _OrganisationPage extends State<OrganisationPage> {
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    _subscription.cancel();
     // TODO: To call onDestroy
     Provider.of<PlayerManager>(context, listen: false).dispose();
     super.dispose();

@@ -8,19 +8,20 @@ import 'package:adhoc_gaming/firebase/firebase_manager.dart';
 import 'package:adhoc_gaming/player/connected_device.dart';
 import 'package:adhoc_gaming/player/message_type.dart';
 import 'package:adhoc_gaming/game/game_constants.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class PlayerManager extends ChangeNotifier {
   Uuid _uuid = Uuid();
-  String _id;
-  String _name;
+  late String _id;
+  late String _name;
   bool _enabled = false;
 
-  ManagerInterface _adhocManager;
-  StreamSubscription _adhocManagerSubscription;
-  FirebaseManager _firebaseManager;
-  StreamSubscription _firebaseManagerSubscription;
+  late ManagerInterface _adhocManager;
+  late StreamSubscription _adhocManagerSubscription;
+  late FirebaseManager _firebaseManager;
+  late StreamSubscription _firebaseManagerSubscription;
 
   List<ConnectedDevice> _discovered = List.empty(growable: true);
   List<ConnectedDevice> _peers = List.empty(growable: true);
@@ -28,17 +29,17 @@ class PlayerManager extends ChangeNotifier {
   // ignore: close_sinks
   StreamController _startGameStreamController =
       StreamController<int>.broadcast();
-  Stream<int> startGameStream;
+  late Stream<int> startGameStream;
 
   // ignore: close_sinks
   StreamController _levelGameStreamController =
       StreamController<int>.broadcast();
-  Stream<int> levelGameStream;
+  late Stream<int> levelGameStream;
 
   // ignore: close_sinks
   StreamController _colorStreamController =
       StreamController<GameColors>.broadcast();
-  Stream<GameColors> colorStream;
+  late Stream<GameColors> colorStream;
 
   /// plugin: 0 for adhoc_plugin & 1 for nearby_plugin
   PlayerManager(String name, int plugin) {
@@ -54,9 +55,9 @@ class PlayerManager extends ChangeNotifier {
     _firebaseManager = FirebaseManager(_id);
 
     // Set up the exposed streams
-    startGameStream = _startGameStreamController.stream;
-    levelGameStream = _levelGameStreamController.stream;
-    colorStream = _colorStreamController.stream;
+    startGameStream = _startGameStreamController.stream as Stream<int>;
+    levelGameStream = _levelGameStreamController.stream as Stream<int>;
+    colorStream = _colorStreamController.stream as Stream<GameColors>;
 
     // Listen to streams of the managers
     _adhocManager.connectivity.listen((enabled) {
@@ -145,20 +146,19 @@ class PlayerManager extends ChangeNotifier {
     _adhocManager.connectPeer(endpoint);
   }
 
-  void connectRoom(String roomId) async {
-    _firebaseManager.connectRoom(roomId);
+  void connectRoom(String? roomId) async {
+    _firebaseManager.connectRoom(roomId!);
     notifyListeners();
   }
 
   void _processData(Map data) {
-    MessageType type = getMessageTypeFromString(data['type'] as String);
+    MessageType type = getMessageTypeFromString(data['type'] as String)!;
     switch (type) {
       case MessageType.adhocDiscovered:
         var endpoint = data['data'] as List<String>;
         // Check for duplicate
-        var duplicate = _discovered.firstWhere(
-            (element) => endpoint[1] == element.id,
-            orElse: () => null);
+        var duplicate = _discovered
+            .firstWhereOrNull((element) => endpoint[1] == element.id);
         if (duplicate == null) {
           _discovered.add(ConnectedDevice(
               uuid: null,
@@ -209,9 +209,8 @@ class PlayerManager extends ChangeNotifier {
             isAdhoc: false,
             isDirect: true);
         // Check for duplicate
-        var duplicate = _peers.firstWhere(
-            (element) => peer.uuid == element.uuid,
-            orElse: () => null);
+        var duplicate =
+            _peers.firstWhereOrNull((element) => peer.uuid == element.uuid);
         if (duplicate == null) {
           _peers.add(peer);
           notifyListeners();
@@ -227,9 +226,8 @@ class PlayerManager extends ChangeNotifier {
             isAdhoc: true,
             isDirect: true);
         // Check for duplicate
-        var duplicate = _peers.firstWhere(
-            (element) => peer.uuid == element.uuid,
-            orElse: () => null);
+        var duplicate =
+            _peers.firstWhereOrNull((element) => peer.uuid == element.uuid);
         if (duplicate == null) {
           _peers.add(peer);
           notifyListeners();
@@ -247,9 +245,8 @@ class PlayerManager extends ChangeNotifier {
           // Check if it is you.
           if (device.uuid == this._id) continue;
           // Check for duplicates.
-          var duplicate = _peers.firstWhere(
-              (element) => device.uuid == element.uuid,
-              orElse: () => null);
+          var duplicate =
+              _peers.firstWhereOrNull((element) => device.uuid == element.uuid);
           if (duplicate == null) {
             device.isDirect = false;
             _peers.add(device);
@@ -315,7 +312,7 @@ class PlayerManager extends ChangeNotifier {
   List<ConnectedDevice> getDiscoveredDevices() => _discovered;
   List<ConnectedDevice> getPeeredDevices() => _peers;
   int get nbPlayers => _peers.length;
-  String get roomId => _firebaseManager.getRoomId();
+  String get roomId => _firebaseManager.getRoomId()!;
   String get name => _name;
   bool get isFirebaseEnabled => _firebaseManager.enabled;
   bool get isAdhocEnabled => _adhocManager.enabled;

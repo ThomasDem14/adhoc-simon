@@ -84,7 +84,7 @@ class _GamePageState extends State<GamePage> {
                             Provider.of<PlayerManager>(context, listen: false)
                                 .getPeeredDevices()
                                 .elementAt(game.getPlayerTurn())
-                                .name),
+                                .name!),
                   );
                 },
               ),
@@ -112,10 +112,11 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  Future<void> onReturn(BuildContext context) async {
+  Future<bool> onReturn(BuildContext context) async {
     Provider.of<PlayerManager>(context, listen: false).leaveGroup();
     dispose();
     Navigator.of(context).pop();
-    return Navigator.of(context).pop();
+    Navigator.of(context).pop();
+    return true;
   }
 }

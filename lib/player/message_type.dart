@@ -13,7 +13,7 @@ enum MessageType {
   sendColorTapped,
 }
 
-MessageType getMessageTypeFromString(String typeString) {
+MessageType? getMessageTypeFromString(String typeString) {
   if (typeString == "adhocDiscovered")
     return MessageType.adhocDiscovered;
   else if (typeString == "adhocConnection")

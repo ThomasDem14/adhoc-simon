@@ -9,20 +9,20 @@ abstract class ServiceManager {
 
   // ignore: close_sinks
   StreamController streamController = StreamController<Map>.broadcast();
-  Stream<Map> stream;
+  late Stream<Map> stream;
 
   // ignore: close_sinks
   StreamController connectivityController = StreamController<bool>.broadcast();
-  Stream<bool> connectivity;
-  bool enabled;
+  late Stream<bool> connectivity;
+  late bool enabled;
 
-  String uuid;
-  String name;
+  String? uuid;
+  String? name;
 
   ServiceManager(this.uuid) {
     enabled = false;
-    stream = streamController.stream;
-    connectivity = connectivityController.stream;
+    stream = streamController.stream as Stream<Map>;
+    connectivity = connectivityController.stream as Stream<bool>;
   }
 
   /// ************  General actions **************/

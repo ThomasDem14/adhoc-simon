@@ -4,8 +4,8 @@ import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:flutter/material.dart';
 
 class SimonGame extends ChangeNotifier {
-  int _seed;
-  Random _random;
+  late int _seed;
+  late Random _random;
 
   int _nbPlayers;
 
@@ -20,7 +20,7 @@ class SimonGame extends ChangeNotifier {
   bool _gameOver = false;
 
   // The sequence consists of colors
-  List<GameColors> _currentSequence;
+  late List<GameColors> _currentSequence;
   GameColors _lastInput = GameColors.Default;
 
   SimonGame(this._nbPlayers, this._seed) {

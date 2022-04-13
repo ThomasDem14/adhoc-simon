@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AdhocPage extends StatelessWidget {
-  const AdhocPage({Key key}) : super(key: key);
+  const AdhocPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +61,8 @@ class AdhocPage extends StatelessWidget {
                       children: <Widget>[
                         ListTile(
                           leading: Icon(Icons.device_unknown),
-                          title: Center(child: Text(device.name)),
-                          subtitle: Center(child: Text(device.id)),
+                          title: Center(child: Text(device.name!)),
+                          subtitle: Center(child: Text(device.id!)),
                         ),
                         TextButton(
                           child: const Text('Connect'),
@@ -76,14 +76,14 @@ class AdhocPage extends StatelessWidget {
                 else {
                   int i = index - devices.length;
                   var device = peers.elementAt(i);
-                  return device.isAdhoc && device.isDirect
+                  return device.isAdhoc! && device.isDirect!
                       ? Card(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
                               ListTile(
                                 leading: Icon(Icons.person),
-                                title: Center(child: Text(device.name)),
+                                title: Center(child: Text(device.name!)),
                                 subtitle: Center(child: Text('Adhoc player')),
                               ),
                               TextButton(

@@ -15,12 +15,13 @@ class FirebaseManager extends ServiceManager {
       app: Firebase.app(),
       databaseURL:
           "https://adhoc-simon-default-rtdb.europe-west1.firebasedatabase.app/");
-  DatabaseReference _reference;
 
-  String _roomId;
-  StreamSubscription _subscription;
+  late DatabaseReference _reference;
 
-  StreamSubscription _connectivitySubscription;
+  String? _roomId;
+  StreamSubscription? _subscription;
+
+  late StreamSubscription _connectivitySubscription;
 
   FirebaseManager(String uuid) : super(uuid);
 
@@ -55,7 +56,7 @@ class FirebaseManager extends ServiceManager {
 
   void dispose() async {
     await _leaveProcess();
-    _subscription.cancel();
+    _subscription?.cancel();
     _connectivitySubscription.cancel();
   }
 
@@ -158,8 +159,8 @@ class FirebaseManager extends ServiceManager {
   }
 
   // Listen to messages sent in the room specified by $id.
-  Future _listen(String roomId) async {
-    if (_subscription != null) _subscription.cancel();
+  Future _listen(String? roomId) async {
+    _subscription?.cancel();
 
     // Fetch users already in the room.
     DataSnapshot snapshot = await _database.ref('rooms/$roomId/users').get();
@@ -220,5 +221,5 @@ class FirebaseManager extends ServiceManager {
     return code.toString();
   }
 
-  String getRoomId() => _roomId;
+  String? getRoomId() => _roomId;
 }

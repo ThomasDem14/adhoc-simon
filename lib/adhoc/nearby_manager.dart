@@ -9,7 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:nearby_plugin/nearby_plugin.dart';
 
 class NearbyManager extends ManagerInterface {
-  final TransferManager _manager = TransferManager();
+  final TransferManager _manager = TransferManager(NearbyStrategy.P2P_CLUSTER);
 
   List<ConnectedDevice> _peers = List.empty(growable: true);
 
@@ -172,9 +172,6 @@ class NearbyManager extends ManagerInterface {
       case NearbyMessageType.onPayloadReceived:
         print("----- onPayloadReceived");
         _processMsgReceived(event);
-        break;
-      case NearbyMessageType.onPayloadTransferred:
-        print("----- onPayloadTransferred");
         break;
       case NearbyMessageType.onConnectionAccepted:
         print("----- onConnection with device ${event.endpointId}");

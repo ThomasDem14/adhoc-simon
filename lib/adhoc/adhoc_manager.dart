@@ -253,7 +253,6 @@ class AdhocManager extends ManagerInterface {
   void connectPeer(ConnectedDevice peer) async {
     if (!this.enabled) return;
 
-    // TODO: Check WiFi Direct connect
     await _manager.connect(_discovered
         .firstWhere((device) => _macFromAdhocDevice(device) == peer.id));
   }

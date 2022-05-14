@@ -100,14 +100,7 @@ class PlayerManager extends ChangeNotifier {
   }
 
   void startGame(int seed) {
-    // Add yourself in the list of peers
-    _peers.add(ConnectedDevice(
-      uuid: _id,
-      id: null,
-      name: _name,
-      isAdhoc: true,
-      isDirect: true,
-    ));
+    _addYourselfInList();
 
     _adhocManager.startGame(seed);
     _firebaseManager.startGame(seed);
@@ -215,6 +208,7 @@ class PlayerManager extends ChangeNotifier {
           _peers.add(peer);
           notifyListeners();
         }
+        _firebaseManager.notifyNewConnection(_peers);
         _adhocManager.notifyNewConnection(_peers);
         break;
 
@@ -269,8 +263,10 @@ class PlayerManager extends ChangeNotifier {
 
       case MessageType.startGame:
         var seed = data['seed'] as int;
+        _addYourselfInList();
         _startGameStreamController.add(seed);
         _transferMessage(data);
+        notifyListeners();
         break;
 
       case MessageType.leaveGroup:
@@ -306,6 +302,19 @@ class PlayerManager extends ChangeNotifier {
 
   bool _isMessageFromFirebase(Map msg) {
     return msg["peers"] == null;
+  }
+
+  void _addYourselfInList() {
+    var duplicate = _peers.firstWhereOrNull((element) => _id == element.uuid);
+    if (duplicate == null) {
+      _peers.add(ConnectedDevice(
+        uuid: _id,
+        id: null,
+        name: _name,
+        isAdhoc: true,
+        isDirect: true,
+      ));
+    }
   }
 
   // Getters

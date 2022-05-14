@@ -36,9 +36,7 @@ class _OrganisationPage extends State<OrganisationPage> {
             providers: [
               ChangeNotifierProvider(
                   create: (_) => SimonGame(
-                      Provider.of<PlayerManager>(context, listen: false)
-                          .nbPlayers,
-                      seed)),
+                      Provider.of<PlayerManager>(context).nbPlayers, seed)),
               ChangeNotifierProvider.value(
                   value: Provider.of<PlayerManager>(context, listen: false)),
             ],

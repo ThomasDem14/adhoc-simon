@@ -151,4 +151,5 @@ class SimonGame extends ChangeNotifier {
   bool isWaitingForInput() => _isWaitingForInput;
   bool isGameOver() => _gameOver;
   int getLevel() => _level;
+  int getNumberPlayers() => _nbPlayers;
 }

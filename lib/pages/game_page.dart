@@ -56,8 +56,16 @@ class _GamePageState extends State<GamePage> {
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           centerTitle: true,
-          title: Text(
-              "Level " + Provider.of<SimonGame>(context).getLevel().toString()),
+          title: Column(
+            children: [
+              Text("Level " +
+                  Provider.of<SimonGame>(context).getLevel().toString()),
+              Text(Provider.of<SimonGame>(context)
+                      .getNumberPlayers()
+                      .toString() +
+                  " player(s)"),
+            ],
+          ),
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () => onReturn(context),

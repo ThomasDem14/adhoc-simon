@@ -18,7 +18,6 @@ dependencies:
 
   nearby_plugin:
     path: "../nearby_plugin"
-
   adhoc_plugin:
     path: "../adhoc_plugin"
     

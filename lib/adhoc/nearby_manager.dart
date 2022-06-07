@@ -46,8 +46,16 @@ class NearbyManager extends ManagerInterface {
       // get list of peers..
       var json = jsonDecode(data['peers'] as String) as List;
       var peersFromMsg = json.map((p) => ConnectedDevice.fromJson(p)).toList();
-      var totalPeers = List<ConnectedDevice>.from(peersFromMsg);
+      // .. add the sender of the message..
+      var sender = ConnectedDevice(
+          uuid: data['uuid'],
+          id: data['id'],
+          name: null,
+          isAdhoc: true,
+          isDirect: true);
+      peersFromMsg.add(sender);
       // .. and add yours.
+      var totalPeers = List<ConnectedDevice>.from(peersFromMsg);
       for (ConnectedDevice peer in _peers) {
         if (totalPeers.firstWhereOrNull((element) => element.id == peer.id) ==
             null) {
@@ -59,14 +67,13 @@ class NearbyManager extends ManagerInterface {
       // Override with own uuid.
       data['uuid'] = uuid;
       // Broadcast for all except the peers that already were in the message.
-      _manager.broadcastExcept(
-          jsonEncode(data), peersFromMsg.map((e) => e.id!).toList());
+      _manager.broadcastExcept(data, peersFromMsg.map((e) => e.id!).toList());
     } else {
       // Else, add your peers in the message and broadcast it.
       data.putIfAbsent("peers", () => jsonEncode(_peers));
       // Override with own uuid.
       data['uuid'] = uuid;
-      _manager.broadcast(jsonEncode(data));
+      _manager.broadcast(data);
     }
   }
 
@@ -77,7 +84,7 @@ class NearbyManager extends ManagerInterface {
     message.putIfAbsent('type', () => MessageType.exchangeUUID.name);
     message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('name', () => name);
-    _manager.sendPayload(jsonEncode(message), peer.id!);
+    _manager.sendPayload(message, peer.id!);
   }
 
   void notifyNewConnection(List<ConnectedDevice> devices) {
@@ -88,7 +95,7 @@ class NearbyManager extends ManagerInterface {
     message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('connections', () => jsonEncode(devices));
     message.putIfAbsent('peers', () => jsonEncode(_peers));
-    _manager.broadcast(jsonEncode(message));
+    _manager.broadcast(message);
   }
 
   void notifyDisconnected(ConnectedDevice device) {
@@ -99,7 +106,7 @@ class NearbyManager extends ManagerInterface {
     message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('disconnected', () => jsonEncode(device));
     message.putIfAbsent('peers', () => jsonEncode(_peers));
-    _manager.broadcast(jsonEncode(message));
+    _manager.broadcast(message);
   }
 
   void startGame(int seed) {
@@ -110,7 +117,7 @@ class NearbyManager extends ManagerInterface {
     message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('seed', () => seed);
     message.putIfAbsent('peers', () => jsonEncode(_peers));
-    _manager.broadcast(jsonEncode(message));
+    _manager.broadcast(message);
   }
 
   void leaveGroup() {
@@ -121,7 +128,7 @@ class NearbyManager extends ManagerInterface {
     message.putIfAbsent('type', () => MessageType.leaveGroup.name);
     message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('peers', () => jsonEncode(_peers));
-    _manager.broadcast(jsonEncode(message));
+    _manager.broadcast(message);
 
     // Then disconnect
     _manager.disconnectAll();
@@ -135,7 +142,7 @@ class NearbyManager extends ManagerInterface {
     message.putIfAbsent('restart', () => restart);
     message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('peers', () => jsonEncode(_peers));
-    _manager.broadcast(jsonEncode(message));
+    _manager.broadcast(message);
   }
 
   void sendColorTapped(GameColors color) {
@@ -146,7 +153,7 @@ class NearbyManager extends ManagerInterface {
     message.putIfAbsent('color', () => color.name);
     message.putIfAbsent('uuid', () => uuid);
     message.putIfAbsent('peers', () => jsonEncode(_peers));
-    _manager.broadcast(jsonEncode(message));
+    _manager.broadcast(message);
   }
 
   ///******** Specific to AdhocManager ********/

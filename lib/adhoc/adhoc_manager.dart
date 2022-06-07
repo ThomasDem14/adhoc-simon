@@ -64,8 +64,16 @@ class AdhocManager extends ManagerInterface {
       // get list of peers..
       var json = jsonDecode(data['peers'] as String) as List;
       var peersFromMsg = json.map((p) => ConnectedDevice.fromJson(p)).toList();
-      var totalPeers = List<ConnectedDevice>.from(peersFromMsg);
+      // .. add the sender of the message..
+      var sender = ConnectedDevice(
+          uuid: data['uuid'],
+          id: data['id'],
+          name: null,
+          isAdhoc: true,
+          isDirect: true);
+      peersFromMsg.add(sender);
       // .. and add yours.
+      var totalPeers = List<ConnectedDevice>.from(peersFromMsg);
       for (ConnectedDevice peer in _peers) {
         if (totalPeers.firstWhereOrNull((element) => element.id == peer.id) ==
             null) {

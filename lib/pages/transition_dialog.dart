@@ -12,13 +12,13 @@ class TransitionDialog extends StatelessWidget {
         TextButton(
           onPressed: () {
             Provider.of<PlayerManager>(context, listen: false).leaveGroup();
-            Navigator.pop(context, 'Leave');
             Navigator.of(context).pop();
           },
           child: const Text('Cancel'),
         ),
         TextButton(
-          onPressed: () => Navigator.pop(context, 'Join'),
+          onPressed: () =>
+              Provider.of<PlayerManager>(context, listen: false).joinGame(),
           child: const Text('OK'),
         ),
       ],

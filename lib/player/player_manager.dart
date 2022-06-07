@@ -18,6 +18,8 @@ class PlayerManager extends ChangeNotifier {
   late String _name;
   bool _enabled = false;
 
+  bool joined = false;
+
   late ManagerInterface _adhocManager;
   late StreamSubscription _adhocManagerSubscription;
   late FirebaseManager _firebaseManager;
@@ -96,7 +98,11 @@ class PlayerManager extends ChangeNotifier {
     _firebaseManagerSubscription.cancel();
     _adhocManager.dispose();
     _firebaseManager.dispose();
-    super.dispose();
+  }
+
+  void joinGame() {
+    joined = true;
+    notifyListeners();
   }
 
   void startGame(int seed) {
@@ -114,6 +120,7 @@ class PlayerManager extends ChangeNotifier {
 
     _discovered = List.empty(growable: true);
     _peers = List.empty(growable: true);
+    joined = false;
     notifyListeners();
   }
 

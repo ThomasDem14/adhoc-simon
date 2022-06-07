@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:adhoc_gaming/game/game_constants.dart';
 import 'package:adhoc_gaming/game/game_widgets.dart';
 import 'package:adhoc_gaming/game/simon_game.dart';
+import 'package:adhoc_gaming/pages/transition_dialog.dart';
 import 'package:adhoc_gaming/player/player_manager.dart';
 import 'package:adhoc_gaming/player/service_manager.dart';
 import 'package:flutter/material.dart';
@@ -44,86 +45,93 @@ class _GamePageState extends State<GamePage> {
     _subscriptions.forEach((sub) {
       sub.cancel();
     });
-    // TODO: To call onDestroy
-    Provider.of<PlayerManager>(context, listen: false).dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          centerTitle: true,
-          title: Column(
-            children: [
-              Text("Level " +
-                  Provider.of<SimonGame>(context).getLevel().toString()),
-              Text(Provider.of<SimonGame>(context)
-                      .getNumberPlayers()
-                      .toString() +
-                  " player(s)"),
-            ],
-          ),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () => onReturn(context),
-          ),
-        ),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              flex: 4,
-              child: Consumer<SimonGame>(
-                builder: (context, game, child) {
-                  return GameWidgets(
-                    onTap: (GameColors color) {
-                      if (!game.isWaitingForInput()) return;
+    return !Provider.of<PlayerManager>(context).joined
+        ? TransitionDialog()
+        : WillPopScope(
+            child: Scaffold(
+              resizeToAvoidBottomInset: false,
+              appBar: AppBar(
+                centerTitle: true,
+                title: Column(
+                  children: [
+                    Text("Level " +
+                        Provider.of<SimonGame>(context).getLevel().toString()),
+                    Text(Provider.of<SimonGame>(context)
+                            .getNumberPlayers()
+                            .toString() +
+                        " player(s)"),
+                  ],
+                ),
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back),
+                  onPressed: () => onReturn(context),
+                ),
+              ),
+              body: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    flex: 4,
+                    child: Consumer<SimonGame>(
+                      builder: (context, game, child) {
+                        return GameWidgets(
+                          onTap: (GameColors color) {
+                            if (!game.isWaitingForInput()) return;
 
-                      Provider.of<PlayerManager>(context, listen: false)
-                          .sendColorTapped(color);
-                    },
-                    colorToDisplay: game.getCurrentColor(),
-                    child: game.isPlayingSequence()
-                        ? const Text("Sequence playing")
-                        : Text(
                             Provider.of<PlayerManager>(context, listen: false)
-                                .getPeeredDevices()
-                                .elementAt(game.getPlayerTurn())
-                                .name!),
-                  );
-                },
+                                .sendColorTapped(color);
+                          },
+                          colorToDisplay: game.getCurrentColor(),
+                          child: game.isPlayingSequence()
+                              ? const Text("Sequence playing")
+                              : Text(Provider.of<PlayerManager>(context,
+                                      listen: false)
+                                  .getPeeredDevices()
+                                  .elementAt(game.getPlayerTurn())
+                                  .name!),
+                        );
+                      },
+                    ),
+                  ),
+                  Container(
+                    child: Provider.of<SimonGame>(context).isGameOver()
+                        ? ElevatedButton(
+                            child: const Text("Restart"),
+                            onPressed: () => Provider.of<PlayerManager>(context,
+                                    listen: false)
+                                .sendNextLevel(ServiceManager.RESTART_GAME),
+                          )
+                        : Provider.of<SimonGame>(context).isWaitingForInput()
+                            ? ElevatedButton(
+                                child: const Text("Tap the colors"),
+                                onPressed: () {},
+                              )
+                            : ElevatedButton(
+                                child: const Text("Continue"),
+                                onPressed: () => Provider.of<PlayerManager>(
+                                        context,
+                                        listen: false)
+                                    .sendNextLevel(ServiceManager.NEXT_LEVEL),
+                              ),
+                  ),
+                  SizedBox(height: 20),
+                ],
               ),
             ),
-            Container(
-              child: Provider.of<SimonGame>(context).isGameOver()
-                  ? ElevatedButton(
-                      child: const Text("Restart"),
-                      onPressed: () =>
-                          Provider.of<PlayerManager>(context, listen: false)
-                              .sendNextLevel(ServiceManager.RESTART_GAME),
-                    )
-                  : ElevatedButton(
-                      child: const Text("Continue"),
-                      onPressed: () =>
-                          Provider.of<PlayerManager>(context, listen: false)
-                              .sendNextLevel(ServiceManager.NEXT_LEVEL),
-                    ),
-            ),
-            SizedBox(height: 20),
-          ],
-        ),
-      ),
-      onWillPop: () => onReturn(context),
-    );
+            onWillPop: () => onReturn(context),
+          );
   }
 
   Future<bool> onReturn(BuildContext context) async {
     Provider.of<PlayerManager>(context, listen: false).leaveGroup();
-    dispose();
-    Navigator.of(context).pop();
+    _subscriptions.forEach((sub) {
+      sub.cancel();
+    });
     Navigator.of(context).pop();
     return true;
   }

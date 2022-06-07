@@ -63,7 +63,7 @@ class SimonGame extends ChangeNotifier {
   /// Add new colors in the sequence and play it after to start the level.
   void startLevel() {
     // if duration is active => return
-    if (_isPlayingSequence || _isWaitingForInput) return;
+    if (_isPlayingSequence) return;
 
     _lastInput = GameColors.Default;
 

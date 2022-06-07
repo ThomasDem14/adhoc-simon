@@ -6,7 +6,6 @@ import 'package:adhoc_gaming/pages/game_page.dart';
 import 'package:adhoc_gaming/pages/internet_page.dart';
 import 'package:adhoc_gaming/pages/main_page.dart';
 import 'package:adhoc_gaming/pages/page_settings.dart';
-import 'package:adhoc_gaming/pages/transition_dialog.dart';
 import 'package:adhoc_gaming/player/player_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -43,8 +42,6 @@ class _OrganisationPage extends State<OrganisationPage> {
             child: GamePage(),
           ),
         ));
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => TransitionDialog()));
       });
     });
   }
